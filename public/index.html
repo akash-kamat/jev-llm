@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jev LLM — An LLM Without a Language Model</title>
+<meta name="description" content="A conversational AI built entirely from non-generative selection. Zero hallucination. Every response was human-written.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;--border:#2a2a3a;
+  --text:#e4e4ef;--text-dim:#8888a0;--accent:#6c5ce7;--accent-dim:#4a3fb5;
+  --user-bg:#6c5ce7;--jev-bg:#1e1e2e;--green:#00d2a0;--red:#ff6b6b;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo h1{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.logo h1 span{color:var(--accent)}
+.subtitle{font-size:12px;color:var(--text-dim);margin-top:2px}
+.gh-link{
+  display:flex;align-items:center;gap:6px;color:var(--text-dim);
+  font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;
+  transition:all .2s;
+}
+.gh-link:hover{color:var(--text);border-color:var(--text-dim);text-decoration:none}
+.gh-link svg{width:16px;height:16px;fill:currentColor}
+
+.banner{
+  padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);flex-shrink:0;
+}
+.banner-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+#chat{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.msg-group{display:flex;flex-direction:column;gap:4px;max-width:700px;width:100%}
+.msg{padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.msg-user{
+  background:var(--user-bg);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;
+  max-width:80%;
+}
+.msg-jev{
+  background:var(--jev-bg);border:1px solid var(--border);align-self:flex-start;
+  border-bottom-left-radius:4px;max-width:85%;
+}
+.msg-meta{
+  display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;margin-top:2px;
+}
+.tag{
+  font-size:11px;padding:3px 8px;border-radius:6px;background:var(--surface2);
+  color:var(--text-dim);border:1px solid var(--border);display:flex;align-items:center;gap:4px;
+}
+.tag-source{background:#6c5ce720;color:var(--accent);border-color:var(--accent-dim)}
+.tag-score .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot-high{background:var(--green)}.dot-mid{background:#ffa500}.dot-low{background:var(--red)}
+
+.typing{display:flex;gap:4px;padding:12px 16px;align-self:flex-start}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--text-dim);animation:bounce .6s infinite alternate}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{to{opacity:.3;transform:translateY(-4px)}}
+
+.welcome{
+  text-align:center;padding:60px 24px;color:var(--text-dim);max-width:560px;margin:auto;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;
+}
+.welcome h2{font-size:24px;color:var(--text);margin-bottom:8px;font-weight:600}
+.welcome p{font-size:14px;line-height:1.7;margin-bottom:16px}
+.welcome-examples{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.example-btn{
+  font-size:12px;padding:6px 14px;border-radius:20px;background:var(--surface2);
+  color:var(--text-dim);border:1px solid var(--border);cursor:pointer;transition:all .2s;
+}
+.example-btn:hover{color:var(--text);border-color:var(--text-dim);background:var(--surface)}
+
+#input-area{
+  padding:16px 24px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;
+}
+#input-wrap{
+  max-width:700px;margin:0 auto;display:flex;gap:8px;align-items:center;
+}
+#msg-input{
+  flex:1;padding:12px 16px;border-radius:12px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text);font-size:14px;outline:none;
+  font-family:inherit;
+}
+#msg-input:focus{border-color:var(--accent)}
+#msg-input::placeholder{color:var(--text-dim)}
+#send-btn{
+  width:40px;height:40px;border-radius:10px;background:var(--accent);border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;
+  flex-shrink:0;
+}
+#send-btn:hover{background:var(--accent-dim)}
+#send-btn:disabled{opacity:.4;cursor:not-allowed}
+#send-btn svg{width:18px;height:18px;fill:#fff}
+.rate-info{font-size:11px;color:var(--text-dim);text-align:center;margin-top:6px}
+
+@media(max-width:600px){
+  header{padding:14px 16px}
+  .subtitle{display:none}
+  #chat{padding:16px}
+  #input-area{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div>
+      <h1><span>Jev</span> LLM</h1>
+      <div class="subtitle">An LLM built without a language model</div>
+    </div>
+  </div>
+  <a class="gh-link" href="https://github.com/akash-kamat/jev-llm" target="_blank">
+    <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    Star on GitHub
+  </a>
+</header>
+
+<div class="banner">
+  <div class="banner-dot"></div>
+  Powered by <a href="https://typesafe.ai" target="_blank">TypeSafe Jev</a> — non-generative AI. Every response is human-authored. Zero hallucination by design.
+</div>
+
+<div id="chat">
+  <div class="welcome" id="welcome">
+    <h2>No tokens generated. Ever.</h2>
+    <p>This conversational AI uses <strong>selection, not generation</strong>. Jev scores 400 human-written responses across 6 dimensions and picks the best one for your message — in ~800ms, for ~$0.0001.</p>
+    <p style="font-size:13px">Try asking something:</p>
+    <div class="welcome-examples">
+      <button class="example-btn" onclick="tryExample(this)">What is the purpose of life?</button>
+      <button class="example-btn" onclick="tryExample(this)">I'm frustrated with my order</button>
+      <button class="example-btn" onclick="tryExample(this)">What can you do?</button>
+      <button class="example-btn" onclick="tryExample(this)">Tell me a joke</button>
+      <button class="example-btn" onclick="tryExample(this)">Which language should I learn?</button>
+    </div>
+  </div>
+</div>
+
+<div id="input-area">
+  <div id="input-wrap">
+    <input type="text" id="msg-input" placeholder="Type a message..." maxlength="500" autocomplete="off">
+    <button id="send-btn" onclick="send()" disabled>
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="rate-info" id="rate-info">Rate limit: 10 messages per minute</div>
+</div>
+
+<script>
+const chat = document.getElementById("chat");
+const input = document.getElementById("msg-input");
+const btn = document.getElementById("send-btn");
+const welcome = document.getElementById("welcome");
+const rateInfo = document.getElementById("rate-info");
+let busy = false;
+let remaining = 10;
+
+input.addEventListener("input", () => { btn.disabled = !input.value.trim() || busy; });
+input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !btn.disabled) send(); });
+
+function tryExample(el) { input.value = el.textContent; btn.disabled = false; send(); }
+
+function scrollDown() { chat.scrollTop = chat.scrollHeight; }
+
+function addMsg(text, type, meta) {
+  if (welcome) welcome.remove();
+  const group = document.createElement("div");
+  group.className = "msg-group";
+
+  const msg = document.createElement("div");
+  msg.className = "msg msg-" + type;
+  msg.textContent = text;
+  group.appendChild(msg);
+
+  if (meta) {
+    const metaDiv = document.createElement("div");
+    metaDiv.className = "msg-meta";
+
+    const src = document.createElement("span");
+    src.className = "tag tag-source";
+    src.textContent = meta.source === "jev" ? "Jev" : "LLM Fallback";
+    metaDiv.appendChild(src);
+
+    if (meta.score != null) {
+      const s = document.createElement("span");
+      s.className = "tag tag-score";
+      const pct = Math.round(meta.score * 100);
+      const level = pct >= 70 ? "high" : pct >= 40 ? "mid" : "low";
+      s.innerHTML = '<span class="dot dot-' + level + '"></span> ' + pct + "% match";
+      metaDiv.appendChild(s);
+    }
+
+    if (meta.intent) {
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.textContent = meta.intent + (meta.subcategory ? "/" + meta.subcategory : "");
+      metaDiv.appendChild(t);
+    }
+
+    if (meta.timing) {
+      const t = document.createElement("span");
+      t.className = "tag";
+      t.textContent = meta.timing + "ms";
+      metaDiv.appendChild(t);
+    }
+
+    group.appendChild(metaDiv);
+  }
+
+  chat.appendChild(group);
+  scrollDown();
+  return group;
+}
+
+function showTyping() {
+  const el = document.createElement("div");
+  el.className = "msg-group";
+  el.id = "typing";
+  el.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+  chat.appendChild(el);
+  scrollDown();
+}
+
+function hideTyping() { document.getElementById("typing")?.remove(); }
+
+async function send() {
+  const text = input.value.trim();
+  if (!text || busy) return;
+
+  busy = true;
+  btn.disabled = true;
+  input.value = "";
+
+  addMsg(text, "user");
+  showTyping();
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
+    });
+
+    hideTyping();
+
+    const rl = res.headers.get("X-RateLimit-Remaining");
+    if (rl != null) remaining = parseInt(rl);
+    rateInfo.textContent = remaining + " request" + (remaining !== 1 ? "s" : "") + " remaining this minute";
+
+    if (res.status === 429) {
+      const data = await res.json();
+      addMsg(data.error, "jev");
+      return;
+    }
+
+    if (!res.ok) {
+      addMsg("Something went wrong. Try again.", "jev");
+      return;
+    }
+
+    const data = await res.json();
+    addMsg(data.response, "jev", data.meta);
+  } catch {
+    hideTyping();
+    addMsg("Couldn't reach the server. Try again.", "jev");
+  } finally {
+    busy = false;
+    btn.disabled = !input.value.trim();
+  }
+}
+</script>
+</body>
+</html>

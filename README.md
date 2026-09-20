@@ -2,6 +2,8 @@
 
 **An "LLM" built without a language model.** Zero text generation. Zero hallucination. Every response was written by a human.
 
+**[Try the live demo](https://jev-llm.vercel.app)**
+
 [TypeSafe's Jev](https://typesafe.ai) is a non-generative AI — it returns typed judgments, not text. This project turns those judgments into a full conversational agent: 400 human-authored responses, multi-dimensional scoring, and contextual selection that makes it *feel* generative.
 
 ```
