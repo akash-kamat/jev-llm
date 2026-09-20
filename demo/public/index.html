@@ -10,8 +10,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0c0c14;--surface:#12121c;--border:#1e1e2e;
-  --text:#c8c8d8;--text-dim:#585870;--text-bright:#e8e8f0;
+  --bg:#141418;--surface:#1a1a1f;--border:#2a2a32;
+  --text:#b8b8c8;--text-dim:#585868;--text-bright:#e0e0ea;
   --green:#50fa7b;--purple:#bd93f9;--pink:#ff79c6;--cyan:#8be9fd;
   --orange:#ffb86c;--red:#ff5555;--yellow:#f1fa8c;--blue:#6272a4;
   --seg-jev:#bd93f9;--seg-score:#50fa7b;--seg-intent:#ff79c6;--seg-time:#8be9fd;
@@ -19,94 +19,83 @@
 }
 body{
   font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);
-  height:100dvh;display:flex;flex-direction:column;overflow:hidden;
+  margin:0;padding:0;height:100vh;overflow:hidden;
 }
 
-/* Terminal window chrome */
-.term-chrome{
-  background:#1a1a2e;padding:10px 16px;display:flex;align-items:center;gap:8px;
-  border-bottom:1px solid var(--border);flex-shrink:0;user-select:none;
-}
-.dots{display:flex;gap:6px}
-.dots span{width:12px;height:12px;border-radius:50%}
-.dot-r{background:#ff5f56}.dot-y{background:#ffbd2e}.dot-g{background:#27c93f}
-.term-title{
-  flex:1;text-align:center;font-size:12px;color:var(--text-dim);letter-spacing:0.5px;
-}
-
-/* Powerline bar under chrome */
-.powerline-bar{
-  display:flex;align-items:stretch;font-size:11px;flex-shrink:0;
-  background:var(--bg);overflow:hidden;
-}
-.pl-seg{
-  display:flex;align-items:center;gap:5px;padding:6px 12px 6px 14px;
-  color:#0c0c14;font-weight:600;position:relative;white-space:nowrap;
-}
-.pl-seg::after{
-  content:'';position:absolute;right:-10px;top:0;bottom:0;width:0;
-  border-left:10px solid var(--_bg);border-top:16px solid transparent;
-  border-bottom:16px solid transparent;z-index:1;
-}
-.pl-jev{background:var(--purple);--_bg:var(--purple)}
-.pl-model{background:var(--pink);--_bg:var(--pink);padding-left:22px}
-.pl-bank{background:var(--cyan);--_bg:var(--cyan);padding-left:22px;color:#0c0c14}
-.pl-cost{background:var(--green);--_bg:var(--green);padding-left:22px;color:#0c0c14}
-.pl-tail{flex:1;background:var(--bg)}
-
-/* Terminal body */
 #terminal{
-  flex:1;overflow-y:auto;padding:20px;font-size:13px;line-height:1.7;
+  --size:1.4;
+  height:calc(100vh - 36px);
+  background:var(--bg);
+  padding:32px;
+  padding-bottom:48px;
+  font-size:calc(var(--size) * 13px);
+  line-height:1.8;
+  cursor:text;
+  overflow-y:auto;
   scrollbar-width:thin;scrollbar-color:var(--border) transparent;
 }
 #terminal::-webkit-scrollbar{width:6px}
 #terminal::-webkit-scrollbar-track{background:transparent}
 #terminal::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
-.line{margin-bottom:2px;word-wrap:break-word}
-
 /* Welcome block */
-.welcome-block{color:var(--text-dim);margin-bottom:16px}
-.welcome-block .ascii{color:var(--purple);margin-bottom:8px;font-size:11px;line-height:1.3}
-.welcome-block .desc{margin-bottom:12px}
+.welcome-block{color:var(--text-dim);margin-bottom:24px}
+.welcome-block .ascii{color:var(--purple);margin-bottom:12px;line-height:1.1;font-family:'JetBrains Mono',monospace;font-size:7.5px;white-space:pre;overflow-x:hidden}
+.welcome-block .desc{margin-bottom:14px;line-height:1.5;font-size:13px;color:var(--text-dim)}
 .welcome-block .desc span{color:var(--green)}
-.welcome-block .hint{color:var(--text-dim);font-size:12px}
-.welcome-block .hint span{color:var(--cyan)}
 
-.examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;margin-bottom:20px}
 .ex-btn{
-  font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:5px 12px;
   background:var(--surface);color:var(--purple);border:1px solid var(--border);
   border-radius:4px;cursor:pointer;transition:all .15s;
 }
-.ex-btn:hover{background:#1e1e2e;border-color:var(--purple);color:var(--text-bright)}
+.ex-btn:hover{background:var(--border);border-color:var(--purple);color:var(--text-bright)}
 
-/* User input line */
-.prompt-line{display:flex;gap:0;margin-top:8px}
+/* Prompt styling */
+.prompt-line{display:flex;align-items:baseline;flex-wrap:wrap;margin-top:6px}
 .prompt-user{color:var(--green);white-space:pre}
 .prompt-at{color:var(--text-dim);white-space:pre}
 .prompt-host{color:var(--purple);white-space:pre}
 .prompt-sep{color:var(--pink);white-space:pre}
 .prompt-text{color:var(--text-bright)}
 
+/* Inline input */
+.input-line{display:flex;align-items:baseline;margin-top:6px}
+.input-line .prompt-user,
+.input-line .prompt-at,
+.input-line .prompt-host,
+.input-line .prompt-sep{flex-shrink:0}
+#msg-input{
+  flex:1;background:transparent;border:none;color:var(--text-bright);
+  font-family:'JetBrains Mono',monospace;
+  font-size:inherit;line-height:inherit;
+  outline:none;caret-color:var(--green);padding:0;min-width:0;
+}
+#msg-input::placeholder{color:var(--text-dim)}
+
 /* Jev response */
-.jev-response{color:var(--text);padding:2px 0 2px 0;margin-top:2px}
+.jev-response{color:var(--text);padding:4px 0;margin-top:4px}
 
 /* Powerline metadata row */
-.meta-line{display:flex;flex-wrap:wrap;align-items:center;margin:4px 0 12px 0;gap:0;font-size:0}
+.meta-line{display:flex;flex-wrap:wrap;align-items:center;margin:6px 0 16px 0;gap:0;font-size:0}
 .seg{
-  display:inline-flex;align-items:center;gap:4px;padding:2px 10px 2px 12px;
-  font-size:11px;font-weight:600;color:#0c0c14;position:relative;
-  line-height:18px;
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 14px 3px 16px;
+  font-size:calc(var(--size, 1.4) * 10px);
+  font-weight:600;color:#0c0c14;position:relative;
+  line-height:22px;
 }
-.seg:first-child{border-radius:3px 0 0 3px;padding-left:8px}
+.seg:first-child{border-radius:3px 0 0 3px;padding-left:10px}
 .seg::after{
-  content:'';position:absolute;right:-8px;top:0;bottom:0;width:0;
-  border-left:8px solid var(--_c);border-top:11px solid transparent;
-  border-bottom:11px solid transparent;z-index:1;
+  content:'';position:absolute;right:-10px;top:0;bottom:0;width:0;
+  border-left:10px solid var(--_c);border-top:14px solid transparent;
+  border-bottom:14px solid transparent;z-index:1;
 }
 .seg:last-child::after{display:none}
-.seg:last-child{border-radius:0 3px 3px 0;padding-right:8px}
+.seg:last-child{border-radius:0 3px 3px 0;padding-right:10px}
 .seg-source{background:var(--seg-source);--_c:var(--seg-source)}
 .seg-score{background:var(--seg-score);--_c:var(--seg-score)}
 .seg-score-mid{background:var(--orange);--_c:var(--orange)}
@@ -115,11 +104,11 @@ body{
 .seg-time{background:var(--seg-time);--_c:var(--seg-time)}
 
 /* Cursor blink */
-.cursor{display:inline-block;width:8px;height:15px;background:var(--text);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:2px}
+.cursor{display:inline-block;width:10px;height:1.1em;background:var(--text);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
 @keyframes blink{50%{opacity:0}}
 
 /* Typing indicator */
-.typing-line{color:var(--text-dim);margin-top:2px}
+.typing-line{color:var(--text-dim);margin-top:4px}
 .typing-dots::after{content:'...';animation:dots 1.2s steps(4,end) infinite}
 @keyframes dots{
   0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}
@@ -128,31 +117,16 @@ body{
 /* Error line */
 .err{color:var(--red)}
 
-/* Input area */
-#input-area{
-  background:var(--surface);border-top:1px solid var(--border);padding:12px 20px;
-  flex-shrink:0;
-}
-#input-row{display:flex;align-items:center;gap:0;max-width:100%}
-.input-prompt{color:var(--green);font-size:13px;white-space:pre;font-family:'JetBrains Mono',monospace}
-.input-at{color:var(--text-dim);font-size:13px;white-space:pre;font-family:'JetBrains Mono',monospace}
-.input-host{color:var(--purple);font-size:13px;white-space:pre;font-family:'JetBrains Mono',monospace}
-.input-sep{color:var(--pink);font-size:13px;white-space:pre;font-family:'JetBrains Mono',monospace}
-#msg-input{
-  flex:1;background:transparent;border:none;color:var(--text-bright);
-  font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;
-  caret-color:var(--green);padding:0;
-}
-#msg-input::placeholder{color:var(--text-dim)}
-
-/* Footer */
+/* Footer bar */
 .footer{
+  position:fixed;bottom:0;left:0;right:0;
   display:flex;align-items:center;justify-content:space-between;
-  padding:6px 20px;background:var(--bg);border-top:1px solid var(--border);
-  flex-shrink:0;font-size:11px;color:var(--text-dim);
+  padding:8px 32px;background:var(--surface);
+  border-top:1px solid var(--border);
+  font-size:12px;color:var(--text-dim);z-index:10;
 }
 .footer-left{display:flex;align-items:center;gap:6px}
-.footer-dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+.footer-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
 .gh-footer{
   display:flex;align-items:center;gap:5px;color:var(--text-dim);text-decoration:none;
   transition:color .15s;
@@ -161,44 +135,24 @@ body{
 .gh-footer svg{width:14px;height:14px;fill:currentColor}
 
 @media(max-width:600px){
-  .pl-seg{font-size:10px;padding:5px 8px 5px 10px}
-  .pl-seg::after{border-left-width:8px;right:-8px}
-  #terminal{padding:14px;font-size:12px}
-  .seg{font-size:10px;padding:2px 7px 2px 9px}
-  .ascii{display:none}
+  #terminal{--size:1;padding:16px;padding-bottom:44px}
+  .welcome-block .ascii{font-size:6px;line-height:1.1}
+  .welcome-block .desc{font-size:12px}
+  .ex-btn{font-size:11px;padding:4px 10px}
+  .seg{font-size:10px;padding:2px 8px 2px 10px}
+  .footer{padding:6px 16px;font-size:11px}
 }
 </style>
 </head>
 <body>
 
-<div class="term-chrome">
-  <div class="dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
-  <div class="term-title">jev-llm &mdash; ~/generative-jev</div>
-  <div style="width:48px"></div>
-</div>
-
-<div class="powerline-bar">
-  <div class="pl-seg pl-jev"> jev-llm</div>
-  <div class="pl-seg pl-model"> non-generative</div>
-  <div class="pl-seg pl-bank"> 400 responses</div>
-  <div class="pl-seg pl-cost"> ~$0.0001/msg</div>
-  <div class="pl-tail"></div>
-</div>
-
 <div id="terminal">
   <div class="welcome-block" id="welcome">
-    <div class="ascii">
-      ╦╔═╗╦  ╦  ╦  ╦  ╔╦╗<br>
-      ║║╣ ╚╗╔╝  ║  ║  ║║║<br>
-      ╩╚═╝ ╚╝   ╩═╝╩═╝╩ ╩
-    </div>
+    <pre class="ascii" id="ascii-art"></pre>
     <div class="desc">
       An LLM built <span>without</span> a language model.<br>
       Zero tokens generated. Every response is human-authored.<br>
       Jev scores candidates across 6 dimensions and selects the best match.
-    </div>
-    <div class="hint">
-      <span>$</span> type a message below, or try one of these:
     </div>
     <div class="examples">
       <button class="ex-btn" onclick="tryExample(this)">what is the purpose of life?</button>
@@ -209,13 +163,7 @@ body{
       <button class="ex-btn" onclick="tryExample(this)">why do we exist?</button>
     </div>
   </div>
-</div>
-
-<div id="input-area">
-  <div id="input-row">
-    <span class="input-prompt">user</span><span class="input-at">@</span><span class="input-host">jev-llm</span><span class="input-sep"> ❯ </span>
-    <input type="text" id="msg-input" placeholder="type a message..." maxlength="500" autocomplete="off" autofocus>
-  </div>
+  <div id="input-container"></div>
 </div>
 
 <div class="footer">
@@ -231,45 +179,57 @@ body{
 
 <script>
 const terminal = document.getElementById("terminal");
-const input = document.getElementById("msg-input");
+const inputContainer = document.getElementById("input-container");
 const rateInfo = document.getElementById("rate-info");
 let busy = false;
 let remaining = 10;
-let welcomeVisible = true;
+let currentInput = null;
 
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && input.value.trim() && !busy) send();
-});
+function createPromptHTML() {
+  return '<span class="prompt-user">user</span>' +
+    '<span class="prompt-at">@</span>' +
+    '<span class="prompt-host">jev-llm</span>' +
+    '<span class="prompt-sep"> ❯ </span>';
+}
 
-function tryExample(el) { input.value = el.textContent; send(); }
+function spawnInput() {
+  const line = document.createElement("div");
+  line.className = "input-line";
+  line.innerHTML = createPromptHTML() +
+    '<input type="text" id="msg-input" placeholder="type a message..." maxlength="500" autocomplete="off">';
+  inputContainer.appendChild(line);
+
+  currentInput = line.querySelector("#msg-input");
+  currentInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && currentInput.value.trim() && !busy) send();
+  });
+  currentInput.focus();
+  scrollDown();
+}
+
+function tryExample(el) {
+  if (busy) return;
+  if (currentInput) currentInput.value = el.textContent;
+  send();
+}
 
 function scrollDown() { terminal.scrollTop = terminal.scrollHeight; }
 
-function addPromptLine(text) {
-  if (welcomeVisible) {
-    document.getElementById("welcome")?.remove();
-    welcomeVisible = false;
-  }
-  const div = document.createElement("div");
-  div.className = "prompt-line";
-  div.innerHTML =
-    '<span class="prompt-user">user</span>' +
-    '<span class="prompt-at">@</span>' +
-    '<span class="prompt-host">jev-llm</span>' +
-    '<span class="prompt-sep"> ❯ </span>' +
+function freezeInput(text) {
+  if (!currentInput) return;
+  const line = currentInput.closest(".input-line");
+  line.className = "prompt-line";
+  line.innerHTML = createPromptHTML() +
     '<span class="prompt-text"></span>';
-  div.querySelector(".prompt-text").textContent = text;
-  terminal.appendChild(div);
-  scrollDown();
+  line.querySelector(".prompt-text").textContent = text;
 }
 
 function addResponse(text) {
   const div = document.createElement("div");
   div.className = "jev-response";
   div.textContent = text;
-  terminal.appendChild(div);
+  inputContainer.before(div);
   scrollDown();
-  return div;
 }
 
 function addMeta(meta) {
@@ -277,8 +237,7 @@ function addMeta(meta) {
   row.className = "meta-line";
 
   const src = meta.source === "jev" ? "jev" : "llm-fallback";
-  const srcSeg = seg("seg-source", " " + src);
-  row.appendChild(srcSeg);
+  row.appendChild(seg("seg-source", " " + src));
 
   if (meta.score != null) {
     const pct = Math.round(meta.score * 100);
@@ -295,7 +254,7 @@ function addMeta(meta) {
     row.appendChild(seg("seg-time", " " + meta.timing + "ms"));
   }
 
-  terminal.appendChild(row);
+  inputContainer.before(row);
   scrollDown();
 }
 
@@ -311,7 +270,7 @@ function addTyping() {
   div.className = "typing-line";
   div.id = "typing";
   div.innerHTML = '<span style="color:var(--purple)">jev</span> <span class="typing-dots"></span>';
-  terminal.appendChild(div);
+  inputContainer.before(div);
   scrollDown();
 }
 
@@ -319,20 +278,18 @@ function removeTyping() { document.getElementById("typing")?.remove(); }
 
 function addError(text) {
   const div = document.createElement("div");
-  div.className = "line err";
+  div.className = "err";
   div.textContent = "error: " + text;
-  terminal.appendChild(div);
+  inputContainer.before(div);
   scrollDown();
 }
 
 async function send() {
-  const text = input.value.trim();
+  const text = currentInput ? currentInput.value.trim() : "";
   if (!text || busy) return;
 
   busy = true;
-  input.value = "";
-
-  addPromptLine(text);
+  freezeInput(text);
   addTyping();
 
   try {
@@ -351,11 +308,13 @@ async function send() {
     if (res.status === 429) {
       const data = await res.json();
       addError(data.error);
+      spawnInput();
       return;
     }
 
     if (!res.ok) {
       addError("something went wrong. try again.");
+      spawnInput();
       return;
     }
 
@@ -367,11 +326,58 @@ async function send() {
     addError("couldn't reach the server. try again.");
   } finally {
     busy = false;
-    input.focus();
+    spawnInput();
   }
 }
 
-input.focus();
+terminal.addEventListener("click", (e) => {
+  if (e.target.closest(".ex-btn")) return;
+  currentInput?.focus();
+});
+
+const ASCII_ARTS = [
+`  (\`-')  _      (\`-')                      <-. (\`-')
+  ( OO).-/     _(OO )       <-.      <-.      \\(OO )_
+   <-.--.(,------.,--.(_/,-.\\     ,--. )   ,--. )  ,--./  ,-.)
+ (\`-'| ,| |  .---'\\   \\ / (_/     |  (\`-') |  (\`-')|   \`.'   |
+ (OO |(_|(|  '--.  \\   /   /      |  |OO ) |  |OO )|  |'.'|  |
+,--. |  | |  .--' _ \\     /_)    (|  '__ |(|  '__ ||  |   |  |
+|  '-'  / |  \`---.\\-'\\   /        |     |' |     |'|  |   |  |
+ \`-----'  \`------'    \`-'         \`-----'  \`-----' \`--'   \`--'`,
+
+`    __                 __    __
+   \\ \\  _____   __   / /   / /   /\\/\\
+    \\ \\/ _ \\ \\ / /  / /   / /   /    \\
+ /\\_/ /  __/\\ V /  / /___/ /___/ /\\/\\ \\
+ \\___/ \\___| \\_/   \\____/\\____/\\/    \\/`,
+
+`      _                             _       _     __  __
+   _ | |   ___    __ __     o O O  | |     | |   |  \\/  |
+  | || |  / -_)   \\ V /    o       | |__   | |__ | |\\/| |
+  _\\__/   \\___|   _\\_/_   TS__[O]  |____|  |____||_|__|_|
+_|"""""|_|"""""|_|"""""| {======|_|"""""|_|"""""|_|"""""|
+"\`-0-0-'"\`-0-0-'"\`-0-0-'./o--000'"\`-0-0-'"\`-0-0-'"\`-0-0-'`,
+
+` \u2584\u2584\u2584\u2588\u2588\u2580\u2580\u2580\u2593\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2592   \u2588\u2593    \u2588\u2588\u2593     \u2588\u2588\u2593     \u2588\u2588\u2588\u2584 \u2584\u2588\u2588\u2588\u2593
+   \u2592\u2588\u2588   \u2593\u2588   \u2580\u2593\u2588\u2588\u2591   \u2588\u2592   \u2593\u2588\u2588\u2592    \u2593\u2588\u2588\u2592    \u2593\u2588\u2588\u2592\u2580\u2588\u2580 \u2588\u2588\u2592
+   \u2591\u2588\u2588   \u2592\u2588\u2588\u2588   \u2593\u2588\u2588  \u2588\u2592\u2591   \u2592\u2588\u2588\u2591    \u2592\u2588\u2588\u2591    \u2593\u2588\u2588    \u2593\u2588\u2588\u2591
+\u2593\u2588\u2588\u2584\u2588\u2588\u2593  \u2592\u2593\u2588  \u2584  \u2592\u2588\u2588 \u2588\u2591\u2591   \u2592\u2588\u2588\u2591    \u2592\u2588\u2588\u2591    \u2592\u2588\u2588    \u2592\u2588\u2588
+ \u2593\u2588\u2588\u2588\u2592   \u2591\u2592\u2588\u2588\u2588\u2588\u2592  \u2592\u2580\u2588\u2591     \u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2592\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2592\u2592\u2588\u2588\u2592   \u2591\u2588\u2588\u2592`,
+
+`       \u2588\u2588\u2588\u2588\u2588                         \u2588\u2588\u2588\u2588\u2588       \u2588\u2588\u2588\u2588\u2588       \u2588\u2588\u2588\u2588\u2588\u2588   \u2588\u2588\u2588\u2588\u2588\u2588
+      \u2592\u2592\u2588\u2588\u2588                         \u2592\u2592\u2588\u2588\u2588       \u2592\u2592\u2588\u2588\u2588       \u2592\u2592\u2588\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588\u2588
+       \u2592\u2588\u2588\u2588   \u2588\u2588\u2588\u2588\u2588\u2588  \u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588    \u2592\u2588\u2588\u2588        \u2592\u2588\u2588\u2588        \u2592\u2588\u2588\u2588\u2592\u2588\u2588\u2588\u2588\u2588\u2592\u2588\u2588\u2588
+       \u2592\u2588\u2588\u2588  \u2588\u2588\u2588\u2592\u2592\u2588\u2588\u2588\u2592\u2592\u2588\u2588\u2588 \u2592\u2592\u2588\u2588\u2588     \u2592\u2588\u2588\u2588        \u2592\u2588\u2588\u2588        \u2592\u2588\u2588\u2588\u2592\u2592\u2588\u2588\u2588 \u2592\u2588\u2588\u2588
+       \u2592\u2588\u2588\u2588 \u2592\u2588\u2588\u2588\u2588\u2588\u2588\u2588  \u2592\u2588\u2588\u2588  \u2592\u2588\u2588\u2588     \u2592\u2588\u2588\u2588        \u2592\u2588\u2588\u2588        \u2592\u2588\u2588\u2588 \u2592\u2592\u2592  \u2592\u2588\u2588\u2588
+ \u2588\u2588\u2588   \u2592\u2588\u2588\u2588 \u2592\u2588\u2588\u2588\u2592\u2592\u2592   \u2592\u2592\u2588\u2588\u2588 \u2588\u2588\u2588      \u2592\u2588\u2588\u2588      \u2588 \u2592\u2588\u2588\u2588      \u2588 \u2592\u2588\u2588\u2588      \u2592\u2588\u2588\u2588
+\u2592\u2592\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  \u2592\u2592\u2588\u2588\u2588\u2588\u2588\u2588   \u2592\u2592\u2588\u2588\u2588\u2588\u2588       \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2588     \u2588\u2588\u2588\u2588\u2588
+ \u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592    \u2592\u2592\u2592\u2592\u2592\u2592     \u2592\u2592\u2592\u2592\u2592       \u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592 \u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592\u2592 \u2592\u2592\u2592\u2592\u2592     \u2592\u2592\u2592\u2592\u2592`
+];
+
+const asciiEl = document.getElementById("ascii-art");
+asciiEl.textContent = ASCII_ARTS[Math.floor(Math.random() * ASCII_ARTS.length)];
+
+spawnInput();
 </script>
 </body>
 </html>
