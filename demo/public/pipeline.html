@@ -76,7 +76,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
 }
 
 .col-body{
-  flex:1;overflow-y:auto;padding:14px 16px;
+  flex:1;overflow-y:auto;padding:18px 20px;
   scrollbar-width:thin;scrollbar-color:#d1d5db transparent;
 }
 .col-body::-webkit-scrollbar{width:5px}
@@ -100,9 +100,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
 
 /* ── shared content styles ── */
 .mono{font-family:'JetBrains Mono',monospace}
-.section{margin-bottom:14px}
+.section{margin-bottom:20px}
 .section:last-child{margin-bottom:0}
-.section-title{font-size:11px;font-weight:600;color:#6b7280;margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px}
+.section-title{font-size:10px;font-weight:700;color:#9ca3af;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
 
 /* tags */
 .tag{
@@ -116,11 +116,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
 
 /* state block */
 .state-box{
-  background:#f0f4ff;border-radius:6px;padding:8px 10px;
-  font-family:'JetBrains Mono',monospace;font-size:12px;
-  word-break:break-all;
+  background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  word-break:break-word;line-height:1.5;
 }
-.state-box .k{color:#4a6fa5}.state-box .v{color:#16a34a}
+.state-box .k{color:#4a6fa5}.state-box .v{color:#1a1a2e}
 
 /* question rows */
 .q-item{
@@ -134,20 +134,31 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
 
 /* response rows */
 .r-item{
-  display:flex;align-items:center;gap:6px;
-  font-size:12px;padding:5px 0;
-  border-bottom:1px solid #f0fdf4;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-size:13px;padding:8px 0;
+  border-bottom:1px solid #f3f4f6;
 }
 .r-item:last-child{border-bottom:none}
-.r-key{font-family:'JetBrains Mono',monospace;color:#6b7280;font-size:11px;flex-shrink:0}
-.r-val{color:#1a1a2e;font-weight:500;flex:1;min-width:0}
-.r-pct{color:#16a34a;font-size:11px;font-weight:400}
+.r-key{
+  font-family:'JetBrains Mono',monospace;color:#6b7280;font-size:11px;
+  text-transform:lowercase;flex-shrink:0;
+}
+.r-val{color:#1a1a2e;flex:1;text-align:right;min-width:0}
+.r-val strong{font-weight:600;color:#1a1a2e;font-size:14px}
+.r-pct{color:#7c3aed;font-size:11px;font-weight:500;margin-left:4px}
+
+/* meta text */
+.meta-text{
+  font-size:12px;color:#6b7280;line-height:1.7;
+  background:#f9fafb;border-radius:6px;padding:10px 12px;
+}
+.meta-text div{padding:1px 0}
 
 /* gate chips */
-.gates{display:flex;flex-wrap:wrap;gap:6px}
+.gates{display:flex;flex-direction:column;gap:8px}
 .gate{
-  font-size:11px;padding:3px 8px;border-radius:4px;
-  font-family:'JetBrains Mono',monospace;
+  font-size:12px;padding:8px 10px;border-radius:6px;
+  font-family:'JetBrains Mono',monospace;line-height:1.4;
 }
 .gate-pass{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
 .gate-fail{background:#fef2f2;color:#ef4444;border:1px solid #fecaca}
@@ -335,55 +346,53 @@ function renderClassify(d) {
 
   // State
   html += `<div class="section">
-    <div class="section-title">State</div>
-    <div class="state-box">{ <span class="k">user_message</span>: <span class="v">"${esc(d.state.user_message)}"</span> }</div>
+    <div class="section-title">Input</div>
+    <div class="state-box"><span class="v">"${esc(d.state.user_message)}"</span></div>
   </div>`;
 
-  // Questions
-  html += `<div class="section"><div class="section-title">Questions (${d.questions.length})</div>`;
-  for (const q of d.questions) {
-    const specTag = q.speculative ? ' <span class="tag tag-spec">speculative</span>' : '';
-    const detail = q.options ? `${q.options} options` : q.levels ? `${q.levels} levels` : 'yes/no';
-    html += `<div class="q-item">
-      <span class="q-id">${esc(q.id)}</span>
-      ${tagHTML(q.type)}${specTag}
-      <span class="q-label">${esc(q.label)} · ${detail}</span>
-    </div>`;
-  }
-  html += '</div>';
-
-  // Key responses
-  html += `<div class="section"><div class="section-title">Responses</div>`;
-  const keyAnswers = [
-    ['intent', d.raw.intent],
-    ['formality', d.raw.formality],
-    ['emotional_intensity', d.raw.emotional_intensity],
-    ['needs_human', d.raw.needs_human],
-  ];
+  // Key responses first (most important)
+  html += `<div class="section"><div class="section-title">Classification</div>`;
+  const responses = [];
+  responses.push(['intent', d.raw.intent]);
   if (d.subcategory && d.raw['sub_' + d.intent]) {
-    keyAnswers.push(['sub_' + d.intent, d.raw['sub_' + d.intent]]);
+    responses.push(['subcategory', d.raw['sub_' + d.intent]]);
   }
-  for (const [key, ans] of keyAnswers) {
+  responses.push(['formality', d.raw.formality]);
+  responses.push(['emotional', d.raw.emotional_intensity]);
+  responses.push(['needs_human', d.raw.needs_human]);
+
+  for (const [key, ans] of responses) {
     if (!ans) continue;
     const type = inferType(ans);
     let val = '';
-    if (type === 'choice') val = `${ans.choice} <span class="r-pct">${(ans.confidence * 100).toFixed(1)}%</span>`;
-    else if (type === 'score') val = `${ans.score.toFixed(2)} / 4.0`;
-    else if (type === 'noul') val = `${(ans.noul * 100).toFixed(1)}%`;
+    if (type === 'choice') val = `<strong>${ans.choice}</strong> <span class="r-pct">(${(ans.confidence * 100).toFixed(0)}%)</span>`;
+    else if (type === 'score') val = `<strong>${ans.score.toFixed(1)}</strong><span class="r-pct"> / 4</span>`;
+    else if (type === 'noul') val = `<strong>${(ans.noul * 100).toFixed(0)}%</strong>`;
     html += `<div class="r-item">
       <span class="r-key">${esc(key)}</span>
-      ${tagHTML(type)}
       <span class="r-val">${val}</span>
     </div>`;
   }
   html += '</div>';
 
   // Gates
-  html += `<div class="section"><div class="section-title">Gates</div><div class="gates">`;
+  html += `<div class="section"><div class="section-title">Safety Gates</div><div class="gates">`;
   const g = d.gates;
-  html += `<div class="gate ${g.needsHuman.pass ? 'gate-pass' : 'gate-fail'}">needsHuman ${(g.needsHuman.value*100).toFixed(0)}% < ${(g.needsHuman.threshold*100)}% ${g.needsHuman.pass ? '✓' : '✗'}</div>`;
-  html += `<div class="gate ${g.intentConfidence.pass ? 'gate-pass' : 'gate-fail'}">confidence ${(g.intentConfidence.value*100).toFixed(0)}% > ${(g.intentConfidence.threshold*100)}% ${g.intentConfidence.pass ? '✓' : '✗'}</div>`;
+  html += `<div class="gate ${g.needsHuman.pass ? 'gate-pass' : 'gate-fail'}">needsHuman ${(g.needsHuman.value*100).toFixed(0)}% ${g.needsHuman.pass ? '✓' : '✗'}</div>`;
+  html += `<div class="gate ${g.intentConfidence.pass ? 'gate-pass' : 'gate-fail'}">confidence ${(g.intentConfidence.value*100).toFixed(0)}% ${g.intentConfidence.pass ? '✓' : '✗'}</div>`;
   html += '</div></div>';
+
+  // Questions metadata (collapsed by default)
+  const mainQs = d.questions.filter(q => !q.speculative);
+  const specQs = d.questions.filter(q => q.speculative);
+  html += `<div class="section">
+    <div class="section-title">systemOne() Call</div>
+    <div class="meta-text">
+      <div>• ${mainQs.length} main questions (intent, formality, emotion, needs_human)</div>
+      <div>• ${specQs.length} speculative subcategory questions</div>
+      <div>• All asked in parallel, only relevant answers used</div>
+    </div>
+  </div>`;
 
   col.innerHTML = html;
 }
