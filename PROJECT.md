@@ -147,9 +147,9 @@ node test.js
 ```
 generative-jev/
 ├── .env                 ← TYPESAFE_API_KEY (+ optional ANTHROPIC_API_KEY for fallback)
-├── response-bank.js     ← 169 pre-written responses (14 intents, 38 subcategories)
+├── response-bank.js     ← 400 pre-written responses (14 intents, 38 subcategories, ~10/subcat)
 ├── templates.js         ← Template engine with slot data and resolution
-├── jev-llm.js           ← Classification + 6-dimension scoring + fallback + weighted selection
+├── jev-llm.js           ← Classification + shortlist + 6-dimension scoring + fallback + weighted selection
 ├── llm-fallback.js      ← Confidence-gated LLM fallback (pluggable, no key required)
 ├── index.js             ← Interactive CLI with debug mode
 └── test.js              ← Batch test runner (23 test cases)
@@ -219,37 +219,38 @@ Covers everything while keeping costs low. Over time, analyze fallback cases and
 
 Cost impact: **~6x average increase** ($0.0001 → $0.0006), but handles 100% of messages.
 
-### 2.5 — Larger Candidate Pools
+### 2.5 — Larger Candidate Pools [DONE]
 
-Scale from ~5 to 10-20 candidates per subcategory for more natural selection:
+Scaled every subcategory from ~5 to 10 candidates. Bank grew from 169 to 400 responses.
 
 ```
  Candidates/subcat    Call 2 questions    Cost       Quality
- 5 (current)          20                  baseline   decent
- 10                   40                  2x         noticeably better
- 20                   80                  4x         very natural
+ 5 (v1)              30                  baseline   decent
+ 10 (current)        60                  2x         noticeably better
+ 20 (future)         120 or shortlisted  4x         very natural
 ```
 
-Sweet spot: **10-20 candidates per subcategory**.
+### 2.6 — Two-Stage Selection [DONE]
 
-### 2.6 — Two-Stage Selection (for large banks)
-
-When banks grow past 50 candidates per subcategory, add a cheap shortlist step:
+Added Noul-based shortlisting for subcategories with >10 candidates. Cheap binary relevance filter narrows to top 5 before deep scoring.
 
 ```
-Call 1: Classify (15 questions)
-Call 2: Quick relevance filter with Noul on all 50 candidates (50 questions, cheap)
-Call 3: Deep 4-dimension scoring on top 5 (20 questions)
+Call 1: Classify (~19 questions)
+Call 2: Shortlist with Noul (1 question per candidate, cheap) → top 5
+Call 3: Deep 6-dimension scoring on top 5 (30 questions)
 ```
 
-Adds ~200ms latency but handles huge response banks efficiently.
+Currently all subcategories have exactly 10 candidates, so shortlisting is bypassed. It activates automatically as banks grow past the threshold.
 
-### Improvement Path
+### Improvement Path (all phases complete)
 
 ```
-  v1             v2 (current)                    +20 candidates   +two-stage
-  ──────────────────────────────────────────────────────────────────────────
-  "chatbot"  →  "smart bot + LLM fallback"   → "almost LLM"  → "LLM-grade"
-  $0.0001/msg   $0.0001 (Jev) / $0.0006 (avg)   $0.0004         $0.0006
-  103 responses  169 + templates + 6 dims         400+            400+
+  v1 (initial)      v2 (all phases done)
+  ──────────────────────────────────────────────────────────────
+  "chatbot"      →  "LLM-grade (with fallback)"
+  $0.0001/msg       $0.0001 (Jev) / $0.0006 (avg with fallback)
+  103 responses      400 responses + templates + 6 dims + shortlist
+  9 intents          14 intents, 38 subcategories
+  4 dimensions       6 dimensions + 3 weight profiles
+  no fallback        confidence-gated LLM fallback
 ```
