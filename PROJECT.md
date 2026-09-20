@@ -87,22 +87,28 @@ generative-jev/
 └── test.js              ← Batch test runner (9 test cases)
 ```
 
-### Response Bank Organization (v1)
+### Response Bank Organization (v2)
 
 ```
 response-bank/
-├── greeting/         casual(5), formal(5), returning(3)
-├── farewell/         casual(4), formal(4)
-├── gratitude/        casual(4), formal(3)
+├── greeting/           casual(5), formal(5), returning(3)
+├── farewell/           casual(4), formal(4)
+├── gratitude/          casual(4), formal(3)
 ├── question_knowledge/ weather(3), time(2), coding(5), math(3), general(5)
 ├── question_personal/  about_assistant(5), about_user(3), feelings(4)
-├── request/          can_do(5), need_more_info(5), cant_do(4)
-├── complaint/        empathetic(5), solution_oriented(4), escalation(3)
-├── small_talk/       casual(5), thoughtful(4)
-├── confusion/        gentle(5)
-└── fallback/         graceful(5)
+├── request/            can_do(5), need_more_info(5), cant_do(5) ← includes templates
+├── complaint/          empathetic(5), solution_oriented(4), escalation(3)
+├── small_talk/         casual(5), thoughtful(4)
+├── meta_capabilities/  can_do(5)★, cant_do(4)★, how_it_works(5)    [NEW]
+├── opinion/            has_perspective(5), deflect(4), recommend(4) [NEW]
+├── explanation/        how_things_work(5), why(4), definition(4)   [NEW]
+├── followup/           more_detail(5), continue(4), repeat(3)      [NEW]
+├── humor/              playful(5), sarcasm(4), absurd(4)            [NEW]
+├── confusion/          gentle(5)
+└── fallback/           graceful(5)
 
-Total: 103 responses
+★ = contains template responses with dynamic slot filling
+Total: 169 responses across 14 intents and 38 subcategories
 ```
 
 ### Jev Primitives Used
@@ -110,14 +116,15 @@ Total: 103 responses
 | Primitive | Where Used | What It Does |
 |-----------|-----------|--------------|
 | **Choice** | Intent classification, subcategory selection | Picks one option from a defined set, returns confidence + probability distribution |
-| **Score** | Formality, emotional intensity, relevance, tone, helpfulness | Returns position on a 0-4 scale with probability distribution |
+| **Score** | Formality, emotional intensity, relevance, tone, helpfulness, specificity, natural flow | Returns position on a 0-4 scale with probability distribution |
 | **Noul** | Needs-human check, answers-question check | Returns single 0-1 probability (yes/no judgment) |
 
 ### Cost Per Message
 
-- **Call 1 (classify):** ~15 questions, ~200-300 input tokens
-- **Call 2 (score):** ~20 questions, ~200-300 input tokens
-- **Total:** ~35 questions, ~500 tokens, ~$0.0001 per message
+- **Call 1 (classify):** ~19 questions (4 base + 14 speculative subcategories + formality/emotion/needs_human), ~300-400 input tokens
+- **Call 2 (score):** ~30 questions (5 candidates × 6 dimensions), ~300-400 input tokens
+- **Total:** ~49 questions, ~700 tokens, ~$0.0001 per message
+- **With LLM fallback (5-10% of messages):** ~$0.0006 average per message
 - **Compared to LLM:** 10-100x cheaper than Claude Haiku/Sonnet
 
 ### Usage
@@ -135,9 +142,24 @@ node test.js
 
 ---
 
+### File Structure (v2)
+
+```
+generative-jev/
+├── .env                 ← TYPESAFE_API_KEY (+ optional ANTHROPIC_API_KEY for fallback)
+├── response-bank.js     ← 169 pre-written responses (14 intents, 38 subcategories)
+├── templates.js         ← Template engine with slot data and resolution
+├── jev-llm.js           ← Classification + 6-dimension scoring + fallback + weighted selection
+├── llm-fallback.js      ← Confidence-gated LLM fallback (pluggable, no key required)
+├── index.js             ← Interactive CLI with debug mode
+└── test.js              ← Batch test runner (23 test cases)
+```
+
+---
+
 ## Phase 2: Improvements
 
-### 2.1 — Better Response Coverage
+### 2.1 — Better Response Coverage [DONE]
 
 Add missing intent categories that cause misclassification:
 
@@ -153,7 +175,7 @@ Also expand subcategories within existing intents. Target: **300+ responses acro
 
 Cost impact: **$0 per message** — same ~35 questions, just better routing.
 
-### 2.2 — Template Responses With Slots
+### 2.2 — Template Responses With Slots [DONE]
 
 Replace some static responses with templates that code fills dynamically:
 
@@ -170,7 +192,7 @@ Jev picks the template. Code fills the slots from a lookup table. Responses feel
 
 Cost impact: **$0 per message** — slot filling is pure code.
 
-### 2.3 — Deeper Scoring Dimensions
+### 2.3 — Deeper Scoring Dimensions [DONE]
 
 Add scoring dimensions for smarter selection:
 
@@ -181,9 +203,9 @@ Add scoring dimensions for smarter selection:
 | Completeness | Does it leave the user hanging? |
 | Natural flow | Would this feel natural in conversation? |
 
-Cost impact: **+50-100% on Call 2** (from 20 → 30-40 questions). Latency barely changes since questions run in parallel.
+Cost impact: **+50% on Call 2** (from 20 → 30 questions). Latency barely changes since questions run in parallel.
 
-### 2.4 — Confidence-Gated LLM Fallback
+### 2.4 — Confidence-Gated LLM Fallback [DONE]
 
 When Jev's best score is below a threshold, fall back to a real LLM:
 
@@ -225,9 +247,9 @@ Adds ~200ms latency but handles huge response banks efficiently.
 ### Improvement Path
 
 ```
-  v1 (now)       +Coverage     +Templates    +20 candidates   +LLM fallback
+  v1             v2 (current)                    +20 candidates   +two-stage
   ──────────────────────────────────────────────────────────────────────────
-  "chatbot"  →  "good bot"  → "smart bot"  → "almost LLM"  → "LLM-grade"
-  $0.0001/msg   $0.0001       $0.0001        $0.0004          $0.0006
-  103 responses  300+          300+ dynamic    600+             600+
+  "chatbot"  →  "smart bot + LLM fallback"   → "almost LLM"  → "LLM-grade"
+  $0.0001/msg   $0.0001 (Jev) / $0.0006 (avg)   $0.0004         $0.0006
+  103 responses  169 + templates + 6 dims         400+            400+
 ```
