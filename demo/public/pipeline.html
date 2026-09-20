@@ -695,7 +695,7 @@ async function run() {
   setStep(1, 'loading');
 
   try {
-    const res = await fetch('/api/pipeline', {
+    const res = await fetch('https://jev-llm-taupe.vercel.app/api/pipeline', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text }),
