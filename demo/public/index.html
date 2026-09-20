@@ -29,7 +29,7 @@ body{
   padding:32px;
   padding-bottom:48px;
   font-size:calc(var(--size) * 13px);
-  line-height:1.8;
+  line-height:1.5;
   cursor:text;
   overflow-y:auto;
   scrollbar-width:thin;scrollbar-color:var(--border) transparent;
@@ -55,36 +55,39 @@ body{
 .ex-btn:hover{background:var(--border);border-color:var(--purple);color:var(--text-bright)}
 
 /* Prompt styling */
-.prompt-line{display:flex;align-items:baseline;flex-wrap:wrap;margin-top:6px}
-.prompt-user{color:var(--green);white-space:pre}
+.prompt-line{display:flex;align-items:baseline;flex-wrap:wrap;margin-top:20px}
+.prompt-user{color:var(--green);white-space:pre;font-weight:600}
 .prompt-at{color:var(--text-dim);white-space:pre}
-.prompt-host{color:var(--purple);white-space:pre}
+.prompt-host{color:var(--purple);white-space:pre;font-weight:600}
 .prompt-sep{color:var(--pink);white-space:pre}
-.prompt-text{color:var(--text-bright)}
+.prompt-text{color:var(--text-bright);font-weight:500}
 
 /* Inline input */
-.input-line{display:flex;align-items:baseline;margin-top:6px}
+.input-line{display:flex;align-items:baseline;margin-top:20px}
 .input-line .prompt-user,
 .input-line .prompt-at,
 .input-line .prompt-host,
 .input-line .prompt-sep{flex-shrink:0}
 #msg-input{
   flex:1;background:transparent;border:none;color:var(--text-bright);
-  font-family:'JetBrains Mono',monospace;
+  font-family:'JetBrains Mono',monospace;font-weight:500;
   font-size:inherit;line-height:inherit;
   outline:none;caret-color:var(--green);padding:0;min-width:0;
 }
-#msg-input::placeholder{color:var(--text-dim)}
+#msg-input::placeholder{color:var(--text-dim);font-weight:400}
 
 /* Jev response */
-.jev-response{color:var(--text);padding:4px 0;margin-top:4px}
+.jev-response{
+  color:var(--cyan);font-size:calc(var(--size,1.4) * 11.5px);
+  padding:0;margin:4px 0 2px 0;line-height:1.6;
+}
 
 /* Meta info line */
 .meta-line{
-  font-size:11px;color:var(--text-dim);opacity:0.5;
-  margin:2px 0 14px 0;
+  font-size:calc(var(--size,1.4) * 7.5px);color:var(--text-dim);opacity:0.4;
+  margin:1px 0 0 0;letter-spacing:0.3px;
 }
-.meta-line span{margin-right:12px}
+.meta-line span{margin-right:10px}
 
 /* Cursor blink */
 .cursor{display:inline-block;width:10px;height:1.1em;background:var(--text);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
