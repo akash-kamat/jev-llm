@@ -1,13 +1,22 @@
 {
   "name": "generative-jev",
   "version": "1.0.0",
-  "description": "",
+  "description": "An LLM built without a language model — using TypeSafe Jev's non-generative AI for contextual response selection",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "node test.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "jev",
+    "typesafe",
+    "llm",
+    "non-generative-ai",
+    "selection-based",
+    "conversational-ai",
+    "zero-hallucination"
+  ],
+  "author": "Akash Kamat",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
