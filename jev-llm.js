@@ -178,6 +178,16 @@ async function scoreResponses(userMessage, candidates, classification) {
       instructions: `Does this response directly address what the user said or asked? Response: "${text}"`,
       criteria: { true: "Yes, it addresses the user's message", false: "No, it misses the point" },
     };
+    questions[`specificity_${candidate.id}`] = {
+      type: "score",
+      instructions: `How specific is this response to the user's exact message, versus being a generic reply that could fit many messages? Response: "${text}"`,
+      criteria: ["Completely generic / could fit anything", "Somewhat generic", "Moderately specific", "Quite specific to this message", "Perfectly tailored to this exact message"],
+    };
+    questions[`natural_flow_${candidate.id}`] = {
+      type: "score",
+      instructions: `How natural would this response feel in a real conversation? Would it sound like something a real person would say? Response: "${text}"`,
+      criteria: ["Very robotic / scripted", "Slightly stiff", "Acceptable", "Natural and conversational", "Perfectly natural — indistinguishable from a real person"],
+    };
   }
 
   const response = await client.systemOne({
@@ -192,31 +202,43 @@ function computeWeightedScores(candidates, scores, classification) {
   const emotionalIntensity = classification.emotionalIntensity;
   const isHighEmotion = emotionalIntensity > 2.5;
   const isComplaint = classification.intent === "complaint";
+  const isSmallTalk = classification.intent === "small_talk" || classification.intent === "humor";
 
-  const weights = isComplaint || isHighEmotion
-    ? { relevance: 0.25, tone: 0.35, helpfulness: 0.15, answers: 0.25 }
-    : { relevance: 0.30, tone: 0.20, helpfulness: 0.25, answers: 0.25 };
+  let weights;
+  if (isComplaint || isHighEmotion) {
+    weights = { relevance: 0.20, tone: 0.30, helpfulness: 0.10, answers: 0.15, specificity: 0.10, naturalFlow: 0.15 };
+  } else if (isSmallTalk) {
+    weights = { relevance: 0.15, tone: 0.20, helpfulness: 0.05, answers: 0.10, specificity: 0.15, naturalFlow: 0.35 };
+  } else {
+    weights = { relevance: 0.25, tone: 0.15, helpfulness: 0.20, answers: 0.15, specificity: 0.10, naturalFlow: 0.15 };
+  }
 
   return candidates.map((candidate) => {
     const relevance = scores[`relevance_${candidate.id}`]?.score ?? 0;
     const tone = scores[`tone_${candidate.id}`]?.score ?? 0;
     const helpfulness = scores[`helpfulness_${candidate.id}`]?.score ?? 0;
     const answersQ = scores[`answers_question_${candidate.id}`]?.noul ?? 0;
+    const specificity = scores[`specificity_${candidate.id}`]?.score ?? 0;
+    const naturalFlow = scores[`natural_flow_${candidate.id}`]?.score ?? 0;
 
     const relevanceNorm = relevance / 4;
     const toneNorm = tone / 4;
     const helpfulnessNorm = helpfulness / 4;
+    const specificityNorm = specificity / 4;
+    const naturalFlowNorm = naturalFlow / 4;
 
     const finalScore =
       weights.relevance * relevanceNorm +
       weights.tone * toneNorm +
       weights.helpfulness * helpfulnessNorm +
-      weights.answers * answersQ;
+      weights.answers * answersQ +
+      weights.specificity * specificityNorm +
+      weights.naturalFlow * naturalFlowNorm;
 
     return {
       ...candidate,
-      scores: { relevance, tone, helpfulness, answersQuestion: answersQ },
-      normalizedScores: { relevance: relevanceNorm, tone: toneNorm, helpfulness: helpfulnessNorm, answersQuestion: answersQ },
+      scores: { relevance, tone, helpfulness, answersQuestion: answersQ, specificity, naturalFlow },
+      normalizedScores: { relevance: relevanceNorm, tone: toneNorm, helpfulness: helpfulnessNorm, answersQuestion: answersQ, specificity: specificityNorm, naturalFlow: naturalFlowNorm },
       weights,
       finalScore,
     };
