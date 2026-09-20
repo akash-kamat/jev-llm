@@ -79,29 +79,12 @@ body{
 /* Jev response */
 .jev-response{color:var(--text);padding:4px 0;margin-top:4px}
 
-/* Powerline metadata row */
-.meta-line{display:flex;flex-wrap:wrap;align-items:center;margin:6px 0 16px 0;gap:0;font-size:0}
-.seg{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 14px 3px 16px;
-  font-size:calc(var(--size, 1.4) * 10px);
-  font-weight:600;color:#0c0c14;position:relative;
-  line-height:22px;
+/* Meta info line */
+.meta-line{
+  font-size:11px;color:var(--text-dim);opacity:0.5;
+  margin:2px 0 14px 0;
 }
-.seg:first-child{border-radius:3px 0 0 3px;padding-left:10px}
-.seg::after{
-  content:'';position:absolute;right:-10px;top:0;bottom:0;width:0;
-  border-left:10px solid var(--_c);border-top:14px solid transparent;
-  border-bottom:14px solid transparent;z-index:1;
-}
-.seg:last-child::after{display:none}
-.seg:last-child{border-radius:0 3px 3px 0;padding-right:10px}
-.seg-source{background:var(--seg-source);--_c:var(--seg-source)}
-.seg-score{background:var(--seg-score);--_c:var(--seg-score)}
-.seg-score-mid{background:var(--orange);--_c:var(--orange)}
-.seg-score-low{background:var(--red);--_c:var(--red);color:#fff}
-.seg-intent{background:var(--seg-intent);--_c:var(--seg-intent)}
-.seg-time{background:var(--seg-time);--_c:var(--seg-time)}
+.meta-line span{margin-right:12px}
 
 /* Cursor blink */
 .cursor{display:inline-block;width:10px;height:1.1em;background:var(--text);animation:blink 1s step-end infinite;vertical-align:text-bottom;margin-left:2px}
@@ -224,45 +207,42 @@ function freezeInput(text) {
   line.querySelector(".prompt-text").textContent = text;
 }
 
+function appendToTerminal(el) {
+  inputContainer.appendChild(el);
+  scrollDown();
+}
+
 function addResponse(text) {
   const div = document.createElement("div");
   div.className = "jev-response";
   div.textContent = text;
-  inputContainer.before(div);
-  scrollDown();
+  appendToTerminal(div);
 }
 
 function addMeta(meta) {
-  const row = document.createElement("div");
-  row.className = "meta-line";
-
+  const parts = [];
   const src = meta.source === "jev" ? "jev" : "llm-fallback";
-  row.appendChild(seg("seg-source", " " + src));
+  parts.push("source: " + src);
 
   if (meta.score != null) {
-    const pct = Math.round(meta.score * 100);
-    const cls = pct >= 70 ? "seg-score" : pct >= 40 ? "seg-score-mid" : "seg-score-low";
-    row.appendChild(seg(cls, " " + pct + "%"));
+    parts.push("score: " + Math.round(meta.score * 100) + "%");
   }
-
   if (meta.intent) {
     const label = meta.intent + (meta.subcategory ? "/" + meta.subcategory : "");
-    row.appendChild(seg("seg-intent", " " + label));
+    parts.push("intent: " + label);
   }
-
   if (meta.timing) {
-    row.appendChild(seg("seg-time", " " + meta.timing + "ms"));
+    parts.push(meta.timing + "ms");
   }
 
-  inputContainer.before(row);
-  scrollDown();
-}
-
-function seg(cls, text) {
-  const s = document.createElement("span");
-  s.className = "seg " + cls;
-  s.textContent = text;
-  return s;
+  const row = document.createElement("div");
+  row.className = "meta-line";
+  parts.forEach(p => {
+    const s = document.createElement("span");
+    s.textContent = p;
+    row.appendChild(s);
+  });
+  appendToTerminal(row);
 }
 
 function addTyping() {
@@ -270,8 +250,7 @@ function addTyping() {
   div.className = "typing-line";
   div.id = "typing";
   div.innerHTML = '<span style="color:var(--purple)">jev</span> <span class="typing-dots"></span>';
-  inputContainer.before(div);
-  scrollDown();
+  appendToTerminal(div);
 }
 
 function removeTyping() { document.getElementById("typing")?.remove(); }
@@ -280,8 +259,7 @@ function addError(text) {
   const div = document.createElement("div");
   div.className = "err";
   div.textContent = "error: " + text;
-  inputContainer.before(div);
-  scrollDown();
+  appendToTerminal(div);
 }
 
 async function send() {
@@ -308,13 +286,11 @@ async function send() {
     if (res.status === 429) {
       const data = await res.json();
       addError(data.error);
-      spawnInput();
       return;
     }
 
     if (!res.ok) {
       addError("something went wrong. try again.");
-      spawnInput();
       return;
     }
 
