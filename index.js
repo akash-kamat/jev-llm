@@ -58,7 +58,13 @@ function prompt() {
           }
         }
 
-        const timingParts = [`classify=${result.timing.classify}ms`, `score=${result.timing.score}ms`];
+        if (result.candidatesTotal) {
+          console.log(`\nCandidates: ${result.candidatesScored} scored of ${result.candidatesTotal} total${result.timing.shortlist ? " (shortlisted)" : ""}`);
+        }
+
+        const timingParts = [`classify=${result.timing.classify}ms`];
+        if (result.timing.shortlist) timingParts.push(`shortlist=${result.timing.shortlist}ms`);
+        timingParts.push(`score=${result.timing.score}ms`);
         if (result.timing.fallback) timingParts.push(`fallback=${result.timing.fallback}ms`);
         timingParts.push(`total=${result.timing.total}ms`);
         console.log(`\nTiming: ${timingParts.join(", ")}`);

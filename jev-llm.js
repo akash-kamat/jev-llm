@@ -149,12 +149,44 @@ async function classifyMessage(userMessage) {
   };
 }
 
+const SHORTLIST_THRESHOLD = 10;
+const SHORTLIST_TOP_N = 5;
+
+async function shortlistCandidates(userMessage, candidates, classification) {
+  const resolved = candidates.map((c) => ({
+    ...c,
+    resolvedText: resolveResponse(c, classification),
+  }));
+
+  const questions = {};
+  for (const candidate of resolved) {
+    questions[`relevant_${candidate.id}`] = {
+      type: "noul",
+      instructions: `Is this response a good match for the user's message? Response: "${candidate.resolvedText}"`,
+      criteria: { true: "Good match — relevant and appropriate", false: "Poor match — irrelevant or inappropriate" },
+    };
+  }
+
+  const response = await client.systemOne({
+    state: { user_message: userMessage },
+    questions,
+  });
+
+  const scored = resolved.map((c) => ({
+    ...c,
+    shortlistScore: response.answers[`relevant_${c.id}`]?.noul ?? 0,
+  }));
+
+  scored.sort((a, b) => b.shortlistScore - a.shortlistScore);
+  return scored.slice(0, SHORTLIST_TOP_N);
+}
+
 async function scoreResponses(userMessage, candidates, classification) {
   const questions = {};
 
   const resolvedCandidates = candidates.map((c) => ({
     ...c,
-    resolvedText: resolveResponse(c, classification),
+    resolvedText: c.resolvedText || resolveResponse(c, classification),
   }));
 
   for (const candidate of resolvedCandidates) {
@@ -272,7 +304,17 @@ async function respond(userMessage) {
     };
   }
 
-  const candidates = getResponsesForCategory(classification.intent, classification.subcategory);
+  const allCandidates = getResponsesForCategory(classification.intent, classification.subcategory);
+
+  let candidates;
+  let shortlistTime = 0;
+  if (allCandidates.length > SHORTLIST_THRESHOLD) {
+    const shortlistStart = Date.now();
+    candidates = await shortlistCandidates(userMessage, allCandidates, classification);
+    shortlistTime = Date.now() - shortlistStart;
+  } else {
+    candidates = allCandidates;
+  }
 
   const scoreStart = Date.now();
   const scores = await scoreResponses(userMessage, candidates, classification);
@@ -280,7 +322,7 @@ async function respond(userMessage) {
 
   const resolvedCandidates = candidates.map((c) => ({
     ...c,
-    resolvedText: resolveResponse(c, classification),
+    resolvedText: c.resolvedText || resolveResponse(c, classification),
   }));
 
   const ranked = computeWeightedScores(resolvedCandidates, scores, classification)
@@ -313,6 +355,7 @@ async function respond(userMessage) {
         escalated: false,
         timing: {
           classify: classifyTime,
+          shortlist: shortlistTime,
           score: scoreTime,
           fallback: fallbackTime,
           total: Date.now() - startTime,
@@ -337,10 +380,13 @@ async function respond(userMessage) {
     escalated: false,
     timing: {
       classify: classifyTime,
+      shortlist: shortlistTime,
       score: scoreTime,
       total: Date.now() - startTime,
     },
+    candidatesTotal: allCandidates.length,
+    candidatesScored: resolvedCandidates.length,
   };
 }
 
-module.exports = { respond, classifyMessage, scoreResponses, computeWeightedScores, flattenBank };
+module.exports = { respond, classifyMessage, scoreResponses, shortlistCandidates, computeWeightedScores, flattenBank, SHORTLIST_THRESHOLD, SHORTLIST_TOP_N };
