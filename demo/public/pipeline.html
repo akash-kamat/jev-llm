@@ -154,6 +154,49 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
 }
 .meta-text div{padding:1px 0}
 
+/* expandable questions */
+.questions-list{display:flex;flex-direction:column;gap:4px}
+.q-expand{
+  background:#fafafa;border:1px solid #e5e7eb;border-radius:6px;
+  overflow:hidden;cursor:pointer;transition:background .15s;
+}
+.q-expand:hover{background:#f3f4f6}
+.q-expand-head{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+}
+.q-expand-icon{
+  font-size:10px;color:#9ca3af;width:12px;flex-shrink:0;
+  transition:transform .2s;
+}
+.q-expand.open .q-expand-icon{transform:rotate(90deg)}
+.q-expand-id{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:#6b7280;flex-shrink:0;min-width:130px;
+}
+.q-expand-label{font-size:12px;color:#1a1a2e;flex:1}
+.q-expand-body{
+  padding:8px 10px 10px;border-top:1px solid #e5e7eb;
+  background:#fff;display:none;
+}
+.q-expand.open .q-expand-body{display:block}
+.q-detail{font-size:11px;color:#6b7280;line-height:1.6}
+.q-detail div{padding:2px 0}
+.q-detail strong{color:#1a1a2e;font-weight:600}
+
+/* skeleton loading */
+.skeleton{
+  background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:4px;
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:8px}
+.skel-line.w80{width:80%}
+.skel-line.w60{width:60%}
+.skel-line.w100{width:100%}
+.skel-box{height:60px;margin-bottom:12px}
+
 /* gate chips */
 .gates{display:flex;flex-direction:column;gap:8px}
 .gate{
@@ -175,28 +218,43 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
 .cand-item.winner .cand-n{color:#16a34a}
 
 /* score bars */
-.score-card{margin-bottom:8px}
+.score-card{
+  margin-bottom:12px;padding:12px;
+  background:#fafafa;border-radius:6px;border:1px solid #e5e7eb;
+}
 .score-card:last-child{margin-bottom:0}
 .score-head{
   display:flex;align-items:center;justify-content:space-between;
-  font-size:12px;margin-bottom:4px;
+  font-size:13px;margin-bottom:6px;
 }
-.score-head .rank{font-weight:600;color:#1a1a2e}
-.score-head .pct{font-family:'JetBrains Mono',monospace;font-weight:600;color:#7c3aed}
-.score-text{font-size:11px;color:#6b7280;margin-bottom:6px;line-height:1.3}
-.bar-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px}
-.bar-row{display:flex;align-items:center;gap:4px}
-.bar-label{font-size:10px;color:#9ca3af;width:50px;text-align:right;flex-shrink:0}
-.bar-track{flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px}
-.bar-num{font-size:10px;color:#9ca3af;width:24px;font-family:'JetBrains Mono',monospace}
+.score-head .rank{font-weight:700;color:#1a1a2e;font-size:14px}
+.score-head .pct{font-family:'JetBrains Mono',monospace;font-weight:700;color:#7c3aed;font-size:15px}
+.score-text{
+  font-size:12px;color:#4b5563;margin-bottom:10px;line-height:1.4;
+  background:#fff;padding:8px;border-radius:4px;
+}
+.bar-grid{display:flex;flex-direction:column;gap:6px}
+.bar-row{display:flex;align-items:center;gap:6px}
+.bar-label{
+  font-size:10px;color:#6b7280;min-width:85px;
+  font-family:'JetBrains Mono',monospace;
+}
+.bar-track{flex:1;height:20px;background:#f3f4f6;border-radius:4px;position:relative;overflow:hidden}
+.bar-fill{
+  height:100%;border-radius:4px;position:absolute;left:0;top:0;
+  display:flex;align-items:center;justify-content:flex-end;padding-right:6px;
+}
+.bar-num{
+  font-size:10px;color:#fff;font-weight:600;
+  font-family:'JetBrains Mono',monospace;text-shadow:0 1px 2px rgba(0,0,0,.2);
+}
 
-.fill-relevance{background:#7c3aed}
-.fill-tone{background:#db2777}
-.fill-helpfulness{background:#0891b2}
-.fill-answersQuestion{background:#16a34a}
-.fill-specificity{background:#ea580c}
-.fill-naturalFlow{background:#ca8a04}
+.fill-relevance{background:#8b5cf6}
+.fill-tone{background:#ec4899}
+.fill-helpfulness{background:#06b6d4}
+.fill-answersQuestion{background:#10b981}
+.fill-specificity{background:#f59e0b}
+.fill-naturalFlow{background:#f97316}
 
 /* weights row */
 .weights{
@@ -382,19 +440,59 @@ function renderClassify(d) {
   html += `<div class="gate ${g.intentConfidence.pass ? 'gate-pass' : 'gate-fail'}">confidence ${(g.intentConfidence.value*100).toFixed(0)}% ${g.intentConfidence.pass ? '✓' : '✗'}</div>`;
   html += '</div></div>';
 
-  // Questions metadata (collapsed by default)
-  const mainQs = d.questions.filter(q => !q.speculative);
-  const specQs = d.questions.filter(q => q.speculative);
-  html += `<div class="section">
-    <div class="section-title">systemOne() Call</div>
-    <div class="meta-text">
-      <div>• ${mainQs.length} main questions (intent, formality, emotion, needs_human)</div>
-      <div>• ${specQs.length} speculative subcategory questions</div>
-      <div>• All asked in parallel, only relevant answers used</div>
-    </div>
-  </div>`;
+  // All questions (expandable)
+  html += `<div class="section"><div class="section-title">All Questions (${d.questions.length})</div>`;
+  html += '<div class="questions-list">';
+  for (const q of d.questions) {
+    const ans = d.raw[q.id];
+    const hasAnswer = !!ans;
+    const type = hasAnswer ? inferType(ans) : '—';
+    const specTag = q.speculative ? ' <span class="tag tag-spec">spec</span>' : '';
+
+    html += `<div class="q-expand" onclick="toggleQuestion(this)">
+      <div class="q-expand-head">
+        <span class="q-expand-icon">▶</span>
+        <span class="q-expand-id">${esc(q.id)}</span>
+        ${tagHTML(q.type)}${specTag}
+        <span class="q-expand-label">${esc(q.label)}</span>
+      </div>
+      <div class="q-expand-body">
+        <div class="q-detail">`;
+
+    if (type === 'choice' && ans) {
+      html += `<div><strong>Result:</strong> ${ans.choice} (${(ans.confidence*100).toFixed(0)}% confidence)</div>`;
+      if (ans.probabilities) {
+        html += '<div><strong>All options:</strong></div>';
+        const sorted = Object.entries(ans.probabilities).sort((a,b) => b[1] - a[1]);
+        for (const [opt, prob] of sorted.slice(0, 5)) {
+          html += `<div>&nbsp;&nbsp;• ${opt}: ${(prob*100).toFixed(1)}%</div>`;
+        }
+      }
+    } else if (type === 'score' && ans) {
+      html += `<div><strong>Result:</strong> ${ans.score.toFixed(2)} / 4.0 (${(ans.confidence*100).toFixed(0)}% confidence)</div>`;
+      if (ans.legend) {
+        html += '<div><strong>Scale:</strong></div>';
+        for (const [level, desc] of Object.entries(ans.legend)) {
+          html += `<div>&nbsp;&nbsp;${level}: ${desc}</div>`;
+        }
+      }
+    } else if (type === 'noul' && ans) {
+      html += `<div><strong>Result:</strong> ${(ans.noul*100).toFixed(1)}% probability</div>`;
+    } else {
+      html += `<div><strong>Type:</strong> ${q.type}</div>`;
+      if (q.options) html += `<div><strong>Options:</strong> ${q.options}</div>`;
+      if (q.levels) html += `<div><strong>Levels:</strong> ${q.levels}</div>`;
+    }
+
+    html += '</div></div></div>';
+  }
+  html += '</div></div>';
 
   col.innerHTML = html;
+}
+
+function toggleQuestion(el) {
+  el.classList.toggle('open');
 }
 
 function renderCandidates(d, winnerId) {
@@ -427,12 +525,8 @@ function renderScoring(d) {
   const dims = d.dimensions;
   let html = '';
 
-  html += `<div class="section">
-    <div class="section-title">${d.totalQuestions} questions (${d.ranked.length} × ${dims.length})</div>
-  </div>`;
-
   // Ranked candidates
-  html += `<div class="section"><div class="section-title">Ranking</div>`;
+  html += `<div class="section"><div class="section-title">Ranking (${d.ranked.length} scored)</div>`;
   for (const r of d.ranked) {
     const pct = (r.finalScore * 100).toFixed(1);
     html += `<div class="score-card">
@@ -440,19 +534,23 @@ function renderScoring(d) {
         <span class="rank">#${r.rank}</span>
         <span class="pct">${pct}%</span>
       </div>
-      <div class="score-text">${esc(r.text).slice(0, 80)}${r.text.length > 80 ? '…' : ''}</div>
+      <div class="score-text">${esc(r.text)}</div>
       <div class="bar-grid">`;
     for (const dim of dims) {
       const raw = r.scores[dim];
       const isNoul = dim === 'answersQuestion';
       const maxVal = isNoul ? 1 : 4;
-      const pctW = ((typeof raw === 'number' ? raw : 0) / maxVal * 100).toFixed(1);
-      const display = typeof raw === 'number' ? raw.toFixed(2) : '—';
+      const pctW = ((typeof raw === 'number' ? raw : 0) / maxVal * 100);
+      const display = typeof raw === 'number' ? (isNoul ? (raw*100).toFixed(0)+'%' : raw.toFixed(2)) : '—';
       const label = dim.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+      const showNum = pctW > 20; // only show number if bar is wide enough
       html += `<div class="bar-row">
         <span class="bar-label">${label}</span>
-        <div class="bar-track"><div class="bar-fill fill-${dim}" style="width:${pctW}%"></div></div>
-        <span class="bar-num">${display}</span>
+        <div class="bar-track">
+          <div class="bar-fill fill-${dim}" style="width:${pctW}%">
+            ${showNum ? `<span class="bar-num">${display}</span>` : ''}
+          </div>
+        </div>
       </div>`;
     }
     html += '</div>';
@@ -507,7 +605,58 @@ function renderEarlyExit(reason) {
 }
 
 function showLoading(colId) {
-  document.getElementById(colId).innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  let html = '';
+  const col = colId.replace('col', '');
+
+  if (col === '1') {
+    // Classify column skeleton
+    html = `
+      <div class="section">
+        <div class="section-title">Input</div>
+        <div class="skeleton skel-box"></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Classification</div>
+        <div class="skeleton skel-line w80"></div>
+        <div class="skeleton skel-line w60"></div>
+        <div class="skeleton skel-line w80"></div>
+        <div class="skeleton skel-line w60"></div>
+      </div>`;
+  } else if (col === '2') {
+    // Candidates column skeleton
+    html = `
+      <div class="section">
+        <div class="section-title">Lookup</div>
+        <div class="skeleton skel-box"></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Candidates</div>
+        <div class="skeleton skel-line w100"></div>
+        <div class="skeleton skel-line w100"></div>
+        <div class="skeleton skel-line w100"></div>
+      </div>`;
+  } else if (col === '3') {
+    // Scoring column skeleton
+    html = `
+      <div class="section">
+        <div class="section-title">Ranking</div>
+        <div class="skeleton skel-box" style="height:100px"></div>
+        <div class="skeleton skel-box" style="height:100px"></div>
+      </div>`;
+  } else if (col === '4') {
+    // Output column skeleton
+    html = `
+      <div class="section">
+        <div class="skeleton skel-line w100"></div>
+        <div class="skeleton skel-line w80"></div>
+      </div>
+      <div class="section">
+        <div class="skeleton skel-line w60"></div>
+        <div class="skeleton skel-line w60"></div>
+      </div>`;
+  }
+
+  document.getElementById(colId).innerHTML = html;
 }
 
 function showError(msg) {
