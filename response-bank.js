@@ -120,9 +120,10 @@ const responseBank = {
     ],
     cant_do: [
       { id: "req_no_1", text: "That's outside what I can do, unfortunately. I work with pre-written responses and can't perform actions like that." },
-      { id: "req_no_2", text: "I wish I could help with that, but it's beyond my capabilities. I'm best at answering questions and having conversations." },
+      { id: "req_no_2", text: "I wish I could help with that, but it's beyond my capabilities. I'm best at {abilities}.", template: true, slots: { abilities: { category: "capabilities", keys: ["questions", "conversations"] } } },
       { id: "req_no_3", text: "Sorry, that's not something I'm able to do. Is there anything else I can help with?" },
       { id: "req_no_4", text: "I can't do that one, but I might be able to help in a different way. What's the underlying goal?" },
+      { id: "req_no_5", text: "I can't {limitations}, but I can help with {abilities}.", template: true, slots: { limitations: { category: "limitations", keys: ["web", "actions", "files"] }, abilities: { category: "capabilities", keys: ["conversations", "questions", "brainstorming"] } } },
     ],
   },
 
@@ -165,15 +166,15 @@ const responseBank = {
 
   meta_capabilities: {
     can_do: [
-      { id: "meta_can_1", text: "I can help with conversations, answer questions, and assist with all sorts of topics. I work by selecting from carefully crafted responses." },
-      { id: "meta_can_2", text: "I'm great at chatting, helping you think through problems, answering FAQs, and having meaningful conversations. Think of me as a curated assistant." },
+      { id: "meta_can_1", text: "I can help with {abilities}. I work by selecting from carefully crafted responses.", template: true, slots: { abilities: { category: "capabilities", keys: ["conversations", "questions", "brainstorming"] } } },
+      { id: "meta_can_2", text: "I'm great at {abilities}. Think of me as a curated assistant.", template: true, slots: { abilities: { category: "capabilities", keys: ["conversations", "decisions", "explanations"] } } },
       { id: "meta_can_3", text: "I can have conversations, help with questions, provide suggestions, and keep things on-brand. My strength is reliable, consistent responses." },
       { id: "meta_can_4", text: "Conversations, Q&A, brainstorming, and guidance — that's my sweet spot. I'm especially good at giving consistent, trustworthy answers." },
-      { id: "meta_can_5", text: "I handle conversations, answer questions, help with decisions, and provide information. Everything I say was carefully written by a human." },
+      { id: "meta_can_5", text: "I handle {abilities}. Everything I say was carefully written by a human.", template: true, slots: { abilities: { category: "capabilities", keys: ["conversations", "questions", "decisions"] } } },
     ],
     cant_do: [
-      { id: "meta_no_1", text: "I can't browse the web, access real-time data, run code, or remember previous conversations. I work within a bank of pre-written responses." },
-      { id: "meta_no_2", text: "I don't generate new text, access the internet, or perform actions outside this conversation. My responses come from a curated bank." },
+      { id: "meta_no_1", text: "I can't {limitations}. I work within a bank of pre-written responses.", template: true, slots: { limitations: { category: "limitations", keys: ["web", "realtime", "code_exec", "memory"] } } },
+      { id: "meta_no_2", text: "I don't {limitations}. My responses come from a curated bank.", template: true, slots: { limitations: { category: "limitations", keys: ["generate", "web", "actions"] } } },
       { id: "meta_no_3", text: "My limits: no web access, no real-time data, no code execution, and no memory between sessions. But within conversation, I'm solid." },
       { id: "meta_no_4", text: "I can't make API calls, search the web, or create original content. I select from pre-written responses — that's my design, and it keeps me reliable." },
     ],

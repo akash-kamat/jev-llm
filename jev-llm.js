@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { TypeSafeClient } = require("@typesafe-ai/sdk");
 const { getResponsesForCategory, getAllSubcategories, flattenBank } = require("./response-bank");
+const { resolveResponse } = require("./templates");
 
 const client = new TypeSafeClient({ apiKey: process.env.TYPESAFE_API_KEY });
 
@@ -150,25 +151,31 @@ async function classifyMessage(userMessage) {
 async function scoreResponses(userMessage, candidates, classification) {
   const questions = {};
 
-  for (const candidate of candidates) {
+  const resolvedCandidates = candidates.map((c) => ({
+    ...c,
+    resolvedText: resolveResponse(c, classification),
+  }));
+
+  for (const candidate of resolvedCandidates) {
+    const text = candidate.resolvedText;
     questions[`relevance_${candidate.id}`] = {
       type: "score",
-      instructions: `How relevant is this response to the user's message? Response: "${candidate.text}"`,
+      instructions: `How relevant is this response to the user's message? Response: "${text}"`,
       criteria: ["Not relevant at all", "Slightly relevant", "Moderately relevant", "Very relevant", "Perfectly relevant"],
     };
     questions[`tone_${candidate.id}`] = {
       type: "score",
-      instructions: `How well does the tone of this response match the user's tone? Response: "${candidate.text}"`,
+      instructions: `How well does the tone of this response match the user's tone? Response: "${text}"`,
       criteria: ["Completely mismatched tone", "Somewhat off", "Acceptable", "Good match", "Perfect tone match"],
     };
     questions[`helpfulness_${candidate.id}`] = {
       type: "score",
-      instructions: `How helpful is this response to the user? Response: "${candidate.text}"`,
+      instructions: `How helpful is this response to the user? Response: "${text}"`,
       criteria: ["Not helpful", "Slightly helpful", "Moderately helpful", "Very helpful", "Extremely helpful"],
     };
     questions[`answers_question_${candidate.id}`] = {
       type: "noul",
-      instructions: `Does this response directly address what the user said or asked? Response: "${candidate.text}"`,
+      instructions: `Does this response directly address what the user said or asked? Response: "${text}"`,
       criteria: { true: "Yes, it addresses the user's message", false: "No, it misses the point" },
     };
   }
@@ -248,19 +255,24 @@ async function respond(userMessage) {
   const scores = await scoreResponses(userMessage, candidates, classification);
   const scoreTime = Date.now() - scoreStart;
 
-  const ranked = computeWeightedScores(candidates, scores, classification)
+  const resolvedCandidates = candidates.map((c) => ({
+    ...c,
+    resolvedText: resolveResponse(c, classification),
+  }));
+
+  const ranked = computeWeightedScores(resolvedCandidates, scores, classification)
     .sort((a, b) => b.finalScore - a.finalScore);
 
   const best = ranked[0];
 
   return {
-    response: best.text,
+    response: best.resolvedText || best.text,
     responseId: best.id,
     finalScore: best.finalScore,
     classification,
     ranking: ranked.map((r) => ({
       id: r.id,
-      text: r.text,
+      text: r.resolvedText || r.text,
       finalScore: r.finalScore.toFixed(4),
       scores: r.scores,
     })),
