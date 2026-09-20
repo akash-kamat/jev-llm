@@ -113,11 +113,12 @@ body{
 }
 .footer-left{display:flex;align-items:center;gap:6px}
 .footer-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-.gh-footer{
+.footer-right{display:flex;align-items:center;gap:16px}
+.gh-footer,.pipeline-link{
   display:flex;align-items:center;gap:5px;color:var(--text-dim);text-decoration:none;
   transition:color .15s;
 }
-.gh-footer:hover{color:var(--purple);text-decoration:none}
+.gh-footer:hover,.pipeline-link:hover{color:var(--purple);text-decoration:none}
 .gh-footer svg{width:14px;height:14px;fill:currentColor}
 
 @media(max-width:600px){
@@ -138,7 +139,8 @@ body{
     <div class="desc">
       An LLM built <span>without</span> a language model.<br>
       Zero tokens generated. Every response is human-authored.<br>
-      Jev scores candidates across 6 dimensions and selects the best match.
+      Jev scores candidates across 6 dimensions and selects the best match.<br>
+      <a href="/pipeline" style="color:var(--purple);text-decoration:none;border-bottom:1px dotted var(--purple)">Switch to pipeline mode</a> for a better understanding of how it works.
     </div>
     <div class="examples">
       <button class="ex-btn" onclick="tryExample(this)">what is the purpose of life?</button>
@@ -157,10 +159,15 @@ body{
     <div class="footer-dot"></div>
     <span id="rate-info">10 requests remaining</span>
   </div>
-  <a class="gh-footer" href="https://github.com/akash-kamat/jev-llm" target="_blank">
-    <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-    <span>akash-kamat/jev-llm</span>
-  </a>
+  <div class="footer-right">
+    <a class="pipeline-link" href="/pipeline">
+      <span>Pipeline Explorer →</span>
+    </a>
+    <a class="gh-footer" href="https://github.com/akash-kamat/jev-llm" target="_blank">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      <span>akash-kamat/jev-llm</span>
+    </a>
+  </div>
 </div>
 
 <script>
