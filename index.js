@@ -38,6 +38,8 @@ function prompt() {
 
       if (debugMode) {
         console.log("--- Debug Info ---");
+        console.log(`Source: ${result.source || "jev"}${result.llmModel ? " (" + result.llmModel + ")" : ""}`);
+        console.log(`Confidence: ${result.confidenceLevel || "n/a"} (score: ${result.finalScore?.toFixed(4)})`);
         console.log(`Intent: ${result.classification.intent} (confidence: ${result.classification.intentConfidence?.toFixed(3)})`);
         console.log(`Subcategory: ${result.classification.subcategory} (confidence: ${result.classification.subcategoryConfidence?.toFixed(3)})`);
         console.log(`Formality: ${result.classification.formality?.toFixed(2)} / 4.0`);
@@ -45,14 +47,21 @@ function prompt() {
         console.log(`Needs human: ${(result.classification.needsHuman * 100).toFixed(1)}%`);
         console.log(`Escalated: ${result.escalated}`);
 
+        if (result.jevBestCandidate) {
+          console.log(`\nJev best (rejected): ${result.jevBestCandidate.score} | "${result.jevBestCandidate.text}"`);
+        }
+
         if (result.ranking) {
           console.log(`\nResponse ranking (${result.ranking.length} candidates):`);
           for (const r of result.ranking.slice(0, 5)) {
-            console.log(`  ${r.finalScore} | ${r.id} | "${r.text.substring(0, 60)}..."`);
+            console.log(`  ${r.finalScore} | ${r.id || "llm"} | "${(r.text || "").substring(0, 60)}..."`);
           }
         }
 
-        console.log(`\nTiming: classify=${result.timing.classify}ms, score=${result.timing.score}ms, total=${result.timing.total}ms`);
+        const timingParts = [`classify=${result.timing.classify}ms`, `score=${result.timing.score}ms`];
+        if (result.timing.fallback) timingParts.push(`fallback=${result.timing.fallback}ms`);
+        timingParts.push(`total=${result.timing.total}ms`);
+        console.log(`\nTiming: ${timingParts.join(", ")}`);
         console.log("--- End Debug ---\n");
       }
     } catch (err) {

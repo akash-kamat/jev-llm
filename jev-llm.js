@@ -2,6 +2,7 @@ require("dotenv").config();
 const { TypeSafeClient } = require("@typesafe-ai/sdk");
 const { getResponsesForCategory, getAllSubcategories, flattenBank } = require("./response-bank");
 const { resolveResponse } = require("./templates");
+const { callLLM, shouldFallback, classifyConfidence } = require("./llm-fallback");
 
 const client = new TypeSafeClient({ apiKey: process.env.TYPESAFE_API_KEY });
 
@@ -286,11 +287,46 @@ async function respond(userMessage) {
     .sort((a, b) => b.finalScore - a.finalScore);
 
   const best = ranked[0];
+  const confidenceLevel = classifyConfidence(best.finalScore);
+
+  if (shouldFallback(best.finalScore, classification.intentConfidence)) {
+    const fallbackStart = Date.now();
+    const llmResult = await callLLM(userMessage);
+    const fallbackTime = Date.now() - fallbackStart;
+
+    if (llmResult.used && llmResult.text) {
+      return {
+        response: llmResult.text,
+        responseId: null,
+        finalScore: best.finalScore,
+        confidenceLevel,
+        source: "llm_fallback",
+        llmModel: llmResult.model,
+        llmUsage: llmResult.usage,
+        classification,
+        jevBestCandidate: { id: best.id, text: best.resolvedText || best.text, score: best.finalScore.toFixed(4) },
+        ranking: ranked.slice(0, 3).map((r) => ({
+          id: r.id,
+          text: r.resolvedText || r.text,
+          finalScore: r.finalScore.toFixed(4),
+        })),
+        escalated: false,
+        timing: {
+          classify: classifyTime,
+          score: scoreTime,
+          fallback: fallbackTime,
+          total: Date.now() - startTime,
+        },
+      };
+    }
+  }
 
   return {
     response: best.resolvedText || best.text,
     responseId: best.id,
     finalScore: best.finalScore,
+    confidenceLevel,
+    source: "jev",
     classification,
     ranking: ranked.map((r) => ({
       id: r.id,
