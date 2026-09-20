@@ -389,4 +389,4 @@ async function respond(userMessage) {
   };
 }
 
-module.exports = { respond, classifyMessage, scoreResponses, shortlistCandidates, computeWeightedScores, flattenBank, SHORTLIST_THRESHOLD, SHORTLIST_TOP_N };
+module.exports = { respond, classifyMessage, scoreResponses, shortlistCandidates, computeWeightedScores, flattenBank, SHORTLIST_THRESHOLD, SHORTLIST_TOP_N, INTENTS, SUBCATEGORIES };

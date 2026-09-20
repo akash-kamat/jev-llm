@@ -1,5 +1,6 @@
 {
   "outputDirectory": "demo/public",
+  "cleanUrls": true,
   "headers": [
     {
       "source": "/api/(.*)",
