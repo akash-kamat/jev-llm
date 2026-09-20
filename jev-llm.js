@@ -13,6 +13,11 @@ const INTENTS = {
   request: "The user is asking the assistant to do something or take an action",
   complaint: "The user is complaining, expressing frustration, or reporting a problem",
   small_talk: "The user is making casual conversation, joking, or chatting",
+  meta_capabilities: "The user is asking what the assistant can or cannot do, its limitations, or how it works",
+  opinion: "The user is asking for the assistant's opinion, recommendation, or perspective on something",
+  explanation: "The user is asking how something works, why something is the way it is, or asking for a definition",
+  followup: "The user is asking for more detail, to continue, repeat, or elaborate on a previous topic",
+  humor: "The user is making a joke, being sarcastic, or saying something absurd or funny",
   confusion: "The user's message is unclear, garbled, or doesn't make sense",
 };
 
@@ -55,6 +60,31 @@ const SUBCATEGORIES = {
   small_talk: {
     casual: "Light, fun conversation",
     thoughtful: "Deeper or more reflective conversation",
+  },
+  meta_capabilities: {
+    can_do: "Asking what the assistant is capable of",
+    cant_do: "Asking about limitations or what it cannot do",
+    how_it_works: "Asking about the technology or mechanism behind the assistant",
+  },
+  opinion: {
+    has_perspective: "A question where multiple viewpoints exist and the user wants a take",
+    deflect: "A deeply personal or subjective question the assistant should not answer",
+    recommend: "The user wants a practical recommendation or suggestion",
+  },
+  explanation: {
+    how_things_work: "Asking how a system, concept, or process works",
+    why: "Asking why something is the way it is",
+    definition: "Asking what a term or concept means",
+  },
+  followup: {
+    more_detail: "Wants deeper explanation of something already discussed",
+    continue: "Wants to move to the next topic or keep going",
+    repeat: "Wants the same thing explained differently",
+  },
+  humor: {
+    playful: "Light jokes, puns, or fun messages",
+    sarcasm: "Sarcastic or ironic messages",
+    absurd: "Nonsensical, random, or surreal humor",
   },
   confusion: {
     gentle: "Gently ask for clarification",

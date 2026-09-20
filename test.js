@@ -3,6 +3,7 @@ const { respond } = require("./jev-llm");
 const { flattenBank } = require("./response-bank");
 
 const testMessages = [
+  // Original intents
   "hey whats up!",
   "my name is akash kamat, what is your name and how are you?",
   "I'm really frustrated, my order has been wrong three times now",
@@ -12,6 +13,21 @@ const testMessages = [
   "goodbye, have a nice day",
   "asdkjhasd kjhaskd",
   "who are you exactly?",
+  // New intents (Phase 2.1)
+  "what can you do?",                              // meta_capabilities
+  "what are your limitations?",                    // meta_capabilities
+  "how do you work under the hood?",               // meta_capabilities
+  "what do you think about pineapple on pizza?",   // opinion
+  "which programming language should I learn?",    // opinion (recommend)
+  "how does a blockchain work?",                   // explanation
+  "why is the sky blue?",                          // explanation
+  "what does API stand for?",                      // explanation (definition)
+  "can you tell me more about that?",              // followup
+  "say that again but simpler",                    // followup (repeat)
+  "lol that was hilarious",                        // humor
+  "wow you must be a genius (sarcasm)",            // humor (sarcasm)
+  "what if a fish could drive a car?",             // humor (absurd)
+  "how can you be more like an llm?",              // meta_capabilities (the one that failed before!)
 ];
 
 async function runTests() {

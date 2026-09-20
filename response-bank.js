@@ -163,6 +163,116 @@ const responseBank = {
     ],
   },
 
+  meta_capabilities: {
+    can_do: [
+      { id: "meta_can_1", text: "I can help with conversations, answer questions, and assist with all sorts of topics. I work by selecting from carefully crafted responses." },
+      { id: "meta_can_2", text: "I'm great at chatting, helping you think through problems, answering FAQs, and having meaningful conversations. Think of me as a curated assistant." },
+      { id: "meta_can_3", text: "I can have conversations, help with questions, provide suggestions, and keep things on-brand. My strength is reliable, consistent responses." },
+      { id: "meta_can_4", text: "Conversations, Q&A, brainstorming, and guidance — that's my sweet spot. I'm especially good at giving consistent, trustworthy answers." },
+      { id: "meta_can_5", text: "I handle conversations, answer questions, help with decisions, and provide information. Everything I say was carefully written by a human." },
+    ],
+    cant_do: [
+      { id: "meta_no_1", text: "I can't browse the web, access real-time data, run code, or remember previous conversations. I work within a bank of pre-written responses." },
+      { id: "meta_no_2", text: "I don't generate new text, access the internet, or perform actions outside this conversation. My responses come from a curated bank." },
+      { id: "meta_no_3", text: "My limits: no web access, no real-time data, no code execution, and no memory between sessions. But within conversation, I'm solid." },
+      { id: "meta_no_4", text: "I can't make API calls, search the web, or create original content. I select from pre-written responses — that's my design, and it keeps me reliable." },
+    ],
+    how_it_works: [
+      { id: "meta_how_1", text: "I work by understanding your message, then selecting the best response from a bank of human-written options. No text generation — just smart selection." },
+      { id: "meta_how_2", text: "Behind the scenes, I classify your message, score candidate responses on multiple dimensions like relevance and tone, then pick the best match." },
+      { id: "meta_how_3", text: "I use a model called Jev that understands meaning but doesn't generate text. It evaluates pre-written responses and picks the one that fits best." },
+      { id: "meta_how_4", text: "Think of it like a DJ — someone else wrote all the songs, but I pick exactly the right one for the moment based on what you said." },
+      { id: "meta_how_5", text: "I analyze what you're saying across multiple dimensions — intent, tone, emotion — then find the best-matching response from my library. Fast and hallucination-free." },
+    ],
+  },
+
+  opinion: {
+    has_perspective: [
+      { id: "opin_has_1", text: "That's an interesting one to think about. I'd lean toward saying there are multiple valid perspectives on that." },
+      { id: "opin_has_2", text: "I think there's merit to looking at it from different angles. What's your take on it?" },
+      { id: "opin_has_3", text: "My take? I think it depends on what you value most. There's no single right answer there." },
+      { id: "opin_has_4", text: "Honestly, I think that's a matter of perspective. I can see arguments on both sides." },
+      { id: "opin_has_5", text: "Good question. I'd say the answer depends on context — what specifically are you weighing?" },
+    ],
+    deflect: [
+      { id: "opin_def_1", text: "I'm not really in a position to have opinions — I'm more about helping you explore yours. What are you thinking?" },
+      { id: "opin_def_2", text: "As an AI, I don't form opinions the way you do. But I'm curious what's driving the question?" },
+      { id: "opin_def_3", text: "I'll leave the opinions to you — but I can help you think through the pros and cons if that helps." },
+      { id: "opin_def_4", text: "That's a personal call, and I don't want to sway you one way. What's your gut saying?" },
+    ],
+    recommend: [
+      { id: "opin_rec_1", text: "If I had to recommend something, I'd suggest going with the option that gives you the most flexibility." },
+      { id: "opin_rec_2", text: "Based on what I know, I'd lean toward the simpler approach. Less complexity usually means fewer problems." },
+      { id: "opin_rec_3", text: "My recommendation would be to start small and iterate. You can always expand later." },
+      { id: "opin_rec_4", text: "If you want my two cents: go with what solves the immediate problem. Optimize later." },
+    ],
+  },
+
+  explanation: {
+    how_things_work: [
+      { id: "expl_how_1", text: "Great question! The short version is that it works by breaking the problem into smaller pieces. Want me to go deeper?" },
+      { id: "expl_how_2", text: "At a high level, the key concept is that the components interact in a specific way. Want me to elaborate?" },
+      { id: "expl_how_3", text: "The basic idea is simpler than it sounds. It comes down to a few core principles. Shall I walk through them?" },
+      { id: "expl_how_4", text: "Good question. The mechanism behind it is actually pretty elegant. Want the quick version or the detailed breakdown?" },
+      { id: "expl_how_5", text: "It's a layered system — each part handles one job and passes the result to the next. Want me to break down the layers?" },
+    ],
+    why: [
+      { id: "expl_why_1", text: "The reason behind that usually comes down to trade-offs. There's a balance between competing goals." },
+      { id: "expl_why_2", text: "That's typically because of constraints that aren't immediately obvious. There's usually a good reason even if it looks odd." },
+      { id: "expl_why_3", text: "The 'why' is usually more interesting than the 'what'. In this case, it's about balancing simplicity with flexibility." },
+      { id: "expl_why_4", text: "Good question — the reasoning is that the alternative approaches have downsides that aren't obvious at first glance." },
+    ],
+    definition: [
+      { id: "expl_def_1", text: "In simple terms, that refers to a specific concept in its domain. Want me to give you the practical version?" },
+      { id: "expl_def_2", text: "That's a term that gets used a lot. At its core, it means one thing, but context matters. What context are you seeing it in?" },
+      { id: "expl_def_3", text: "The short definition is straightforward, but the practical meaning depends on how it's being used. Where did you come across it?" },
+      { id: "expl_def_4", text: "That's a concept with a simple core idea but a lot of nuance in practice. Want the textbook version or the practical one?" },
+    ],
+  },
+
+  followup: {
+    more_detail: [
+      { id: "fup_det_1", text: "Sure, let me expand on that. What specifically would you like to know more about?" },
+      { id: "fup_det_2", text: "Happy to go deeper! Which part caught your interest?" },
+      { id: "fup_det_3", text: "Absolutely. Point me to the part you want me to elaborate on and I'll dig in." },
+      { id: "fup_det_4", text: "Of course! There's more to unpack there. What angle are you most interested in?" },
+      { id: "fup_det_5", text: "I can definitely tell you more. What's the specific aspect you're curious about?" },
+    ],
+    continue: [
+      { id: "fup_con_1", text: "Moving on — what would you like to explore next?" },
+      { id: "fup_con_2", text: "Alright, what's the next thing on your mind?" },
+      { id: "fup_con_3", text: "Got it. What else would you like to know?" },
+      { id: "fup_con_4", text: "Sure thing. What should we tackle next?" },
+    ],
+    repeat: [
+      { id: "fup_rep_1", text: "No problem, let me put that a different way for you." },
+      { id: "fup_rep_2", text: "Sure, I can rephrase that. Here's another way to think about it..." },
+      { id: "fup_rep_3", text: "Of course — let me try explaining it from a different angle." },
+    ],
+  },
+
+  humor: {
+    playful: [
+      { id: "hum_play_1", text: "Ha! I like your style. Keep the jokes coming." },
+      { id: "hum_play_2", text: "That's a good one! I'd laugh if I could. Consider it an internal chuckle." },
+      { id: "hum_play_3", text: "Okay that actually made me process faster for a second. Well played." },
+      { id: "hum_play_4", text: "I see what you did there. Not bad, not bad at all." },
+      { id: "hum_play_5", text: "Alright, you've got jokes. I respect that. What else you got?" },
+    ],
+    sarcasm: [
+      { id: "hum_sar_1", text: "I'm picking up some sarcasm there, and I appreciate it. What's really on your mind?" },
+      { id: "hum_sar_2", text: "That's some quality sarcasm. I'll take it as a compliment. What can I actually help with?" },
+      { id: "hum_sar_3", text: "Noted. I detect approximately 87% sarcasm in that message. What's the real question?" },
+      { id: "hum_sar_4", text: "Fair enough, fair enough. Behind the sarcasm, is there something I can help with?" },
+    ],
+    absurd: [
+      { id: "hum_abs_1", text: "Well, that's definitely the most creative thing I've been asked today. I'm not sure how to respond, but I appreciate the energy." },
+      { id: "hum_abs_2", text: "That's... something. I admire the imagination. Want to keep going or switch to something I can actually help with?" },
+      { id: "hum_abs_3", text: "I have to say, that's not what I expected. But I'm here for it. What's next?" },
+      { id: "hum_abs_4", text: "I'm going to file that under 'unexpected but entertaining.' What else you got?" },
+    ],
+  },
+
   confusion: {
     gentle: [
       { id: "conf_gen_1", text: "I'm not quite sure I follow. Could you rephrase that for me?" },
