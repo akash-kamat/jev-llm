@@ -46,6 +46,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
   font-family:'JetBrains Mono',monospace;
 }
 .timing-bar span{margin-left:12px}
+.mode-link{
+  font-size:13px;font-weight:500;color:#7c3aed;text-decoration:none;
+  white-space:nowrap;display:flex;align-items:center;gap:4px;
+  transition:color .15s;
+}
+.mode-link:hover{color:#6d28d9}
 
 /* ── columns ── */
 .cols{flex:1;display:flex;min-height:0}
@@ -301,6 +307,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:#f5f5f7;color:#1a1a2e;-
       <button class="run-btn" id="run-btn" onclick="run()">Run Jev</button>
     </div>
     <div class="timing-bar" id="timing"></div>
+    <a href="/" class="mode-link">← Interactive Mode</a>
   </div>
 
   <!-- 4 columns -->
