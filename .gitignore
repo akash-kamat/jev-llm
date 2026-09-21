@@ -3,3 +3,6 @@ node_modules/
 .claude/
 .agents/
 skills-lock.json
+./AGENTS.md
+./PROJECT.md
+./generative_jev_ideas.md

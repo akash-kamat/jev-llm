@@ -1,0 +1,18 @@
+{
+  "lockfileVersion": 2,
+  "configVersion": 0,
+  "workspaces": {
+    "": {
+      "name": "generative-jev",
+      "dependencies": {
+        "@typesafe-ai/sdk": "^0.6.0",
+        "dotenv": "^18.0.1",
+      },
+    },
+  },
+  "packages": {
+    "@typesafe-ai/sdk": ["@typesafe-ai/sdk@0.6.0", "", {}, "sha512-IddX+Q0XM+VagOUZFeP7wZjaO4SHMdvnh2zEBdrZZnXedWI3BNK1lKhMx3ayrkFWvVLbVcUHJy6AVZlY+e6Jaw=="],
+
+    "dotenv": ["dotenv@18.0.1", "", { "bin": "dist/index.cjs" }, "sha512-0eR4m4D/jH5eaI3evo2ZqqMii5mrTCR12v12VChdie6O1gPHs7XAjzTep0CWc1Bd+oNx3vVfbi734dK4zghigw=="],
+  }
+}

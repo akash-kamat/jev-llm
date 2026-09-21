@@ -1,4 +1,4 @@
-const { respond } = require("../jev-llm");
+const { respond } = require("../gen1-selection-based/jev-llm");
 
 const MAX_MESSAGE_LENGTH = 500;
 const RATE_LIMIT = 10;

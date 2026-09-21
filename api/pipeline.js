@@ -1,7 +1,7 @@
-const { classifyMessage, scoreResponses, computeWeightedScores, shortlistCandidates, SHORTLIST_THRESHOLD, SHORTLIST_TOP_N, INTENTS, SUBCATEGORIES } = require("../jev-llm");
-const { getResponsesForCategory } = require("../response-bank");
-const { resolveResponse } = require("../templates");
-const { classifyConfidence, shouldFallback } = require("../llm-fallback");
+const { classifyMessage, scoreResponses, computeWeightedScores, shortlistCandidates, SHORTLIST_THRESHOLD, SHORTLIST_TOP_N, INTENTS, SUBCATEGORIES } = require("../gen1-selection-based/jev-llm");
+const { getResponsesForCategory } = require("../gen1-selection-based/response-bank");
+const { resolveResponse } = require("../gen1-selection-based/templates");
+const { classifyConfidence, shouldFallback } = require("../gen1-selection-based/llm-fallback");
 
 const MAX_MESSAGE_LENGTH = 500;
 const RATE_LIMIT = 5;
