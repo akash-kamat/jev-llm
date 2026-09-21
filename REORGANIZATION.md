@@ -16,13 +16,17 @@ The project has been reorganized to separate two different approaches:
 - `llm-fallback.js` → `gen1-selection-based/llm-fallback.js`
 - `test.js` → `gen1-selection-based/test.js`
 
-### Generation 2: Compositional (in project root)
+### Generation 2: Compositional (in `gen2-compositional/`)
 
-**New experimental system** - Composes responses from ~50 building blocks into thousands of combinations.
+**New compositional system** - Builds responses dynamically using:
+- Semantic planning (Jev decides WHAT to say)
+- Phrase-level selection (~100 phrases → 10,000+ combinations)
+- Grammar-based assembly (code handles HOW to say it)
+- Tool integration (math, knowledge, time, etc.)
 
-**Files:**
-- `jev-compositional-example.js` - Core compositional logic
-- `test-compositional.js` - Test runner for gen2
+**Folder:**
+- `gen2-compositional/` - Complete gen2 implementation
+- `gen2-compositional/ARCHITECTURE.md` - Full design specification with 6 implementation phases
 
 ## Updated References
 
@@ -55,18 +59,18 @@ node gen1-selection-based/index.js
 
 ### Gen2 (Compositional)
 ```bash
-# Test runner
-npm run test:gen2
+# Once implemented
+node gen2-compositional/index.js
 
-# Or directly
-node test-compositional.js
+# Or via package.json (after setup)
+npm run gen2
 ```
 
 ## API Endpoints
 
 Both API endpoints (`/api/chat` and `/api/pipeline`) continue to use **Gen1** by default.
 
-To switch to Gen2, the API files would need to import from the root-level compositional files instead.
+To switch to Gen2, the API files would need to import from `gen2-compositional/` instead.
 
 ## Why This Reorganization?
 

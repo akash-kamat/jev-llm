@@ -5,7 +5,9 @@
   "main": "gen1-selection-based/index.js",
   "dependencies": {
     "@typesafe-ai/sdk": "^0.6.0",
-    "dotenv": "^18.0.1"
+    "dotenv": "^18.0.1",
+    "duck-duck-scrape": "^2.2.7",
+    "mathjs": "^15.2.0"
   },
   "description": "An LLM built without a language model — using TypeSafe Jev's non-generative AI for contextual response selection",
   "keywords": [
@@ -21,7 +23,7 @@
   "scripts": {
     "start": "node gen1-selection-based/index.js",
     "test": "node gen1-selection-based/test.js",
-    "test:gen2": "node test-compositional.js"
+    "gen2": "node gen2-compositional/index.js"
   },
   "type": "commonjs"
 }
