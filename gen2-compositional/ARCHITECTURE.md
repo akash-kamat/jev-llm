@@ -352,10 +352,10 @@ if (!validateResponse(response)) {
 **Goal:** Prove gen2 is better than gen1
 
 **Components:**
-- [ ] Test cases covering all scenarios
-- [ ] Gen1 vs Gen2 comparison
-- [ ] Variety measurement
-- [ ] Multi-intent test cases
+- [x] Test cases covering all scenarios
+- [x] Gen1 vs Gen2 comparison
+- [x] Variety measurement
+- [x] Multi-intent test cases
 
 **Test Scenarios:**
 ```javascript

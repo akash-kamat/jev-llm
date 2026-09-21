@@ -1,6 +1,6 @@
 # Jev LLM
 
-**An "LLM" built without a language model.** Zero text generation. Zero hallucination. Every response was written by a human.
+**A conversational AI built without a language model.** No text generation. No hallucination. Responses composed from phrase-level building blocks using non-generative AI.
 
 **[Try the live demo →](https://jevllm.pages.dev)**
 
@@ -10,17 +10,20 @@ https://github.com/user-attachments/assets/6160944b-b655-4030-8d06-85467e643f14
 
 </div>
 
-[TypeSafe's Jev](https://typesafe.ai) is a non-generative AI — it returns typed judgments, not text. This project turns those judgments into a full conversational agent: 400 human-authored responses, multi-dimensional scoring, and contextual selection that makes it *feel* generative.
+[TypeSafe's Jev](https://typesafe.ai) is a non-generative AI — it returns typed judgments, not text. This project turns those judgments into a full conversational agent: ~100 human-authored phrases compose into 10,000+ unique responses, with multi-intent support and integrated tools for math, knowledge, and time.
 
 ```
-You: what is the purpose of life?
-Jev: That's one of the big questions. I think purpose isn't found — it's built,
-     through the things you care about and the people you show up for.
+You: Hey! What's 50*12? Also what can you do?
 
-     Source: jev | Score: 0.82 | Intent: explanation/why | 847ms
+Jev: Hey! Sure! 50 × 12 = 600. I can help with answering questions,
+     having conversations, and helping you think through problems.
+     Anything else?
+
+     Intents: greeting, math_calculation, capability_query
+     Tools: math | API calls: 2 | 806ms
 ```
 
-No token was generated. Jev read 10 candidate responses and picked the one that best fit — scoring it across 6 dimensions in parallel.
+Three intents detected, a real calculation performed, and a composed response — no token was generated.
 
 ---
 
@@ -33,49 +36,51 @@ No token was generated. Jev read 10 candidate responses and picked the one that 
                                │
                                ▼
               ┌────────────────────────────────┐
-              │     CALL 1: CLASSIFY (400ms)   │
+              │   LAYER 1: CLASSIFY (400ms)    │
               │                                │
-              │  19 questions, 1 Jev call:      │
-              │  ├─ Intent    (Choice)          │
-              │  ├─ Formality (Score 0-4)       │
-              │  ├─ Emotion   (Score 0-4)       │
-              │  ├─ Needs human? (Noul 0-1)     │
-              │  └─ Subcategory per intent      │
-              │     (speculative fan-out)       │
+              │  Understand intent & context:   │
+              │  ├─ Multiple intents (Choice)   │
+              │  ├─ Formality     (Score 0-4)   │
+              │  ├─ Emotion       (Score 0-4)   │
+              │  ├─ Complexity    (Score 0-4)   │
+              │  └─ Tool detection (Nouls)      │
               └───────────────┬────────────────┘
                               │
-                     Gate checks:
-                     needs_human > 0.8 → escalate
-                     confidence < 0.3  → fallback
+                     Detect & execute tools:
+                     math, knowledge, datetime
                               │
                               ▼
               ┌────────────────────────────────┐
-              │   FETCH CANDIDATES (0ms)       │
-              │   Code looks up 10 responses   │
-              │   by intent + subcategory      │
+              │   LAYER 2: SELECT (400ms)      │
+              │                                │
+              │  Pick phrases for each segment: │
+              │  ├─ Greeting phrase             │
+              │  ├─ Acknowledgment phrase       │
+              │  ├─ Tool result presentation    │
+              │  ├─ Connector phrase            │
+              │  └─ Follow-up phrase            │
+              │                                │
+              │  Jev scores candidates per slot │
+              │  considering tone & formality   │
               └───────────────┬────────────────┘
                               │
                               ▼
               ┌────────────────────────────────┐
-              │     CALL 2: SCORE (400ms)      │
+              │   LAYER 3: ASSEMBLE (0ms)      │
               │                                │
-              │  Per candidate, score on:       │
-              │  ├─ Relevance      (Score)      │
-              │  ├─ Tone match     (Score)      │
-              │  ├─ Helpfulness    (Score)      │
-              │  ├─ Answers question (Noul)     │
-              │  ├─ Specificity    (Score)      │
-              │  └─ Natural flow   (Score)      │
+              │  Compose phrases into response: │
+              │  ├─ Grammar rules              │
+              │  ├─ Smart punctuation          │
+              │  └─ Multi-intent joining       │
               │                                │
-              │  Context-aware weighted sum     │
-              │  → Pick highest-scoring one     │
+              │  No API call — pure code       │
               └───────────────┬────────────────┘
                               │
                               ▼
                          Response ✓
 ```
 
-**Speculative fan-out:** Call 1 asks the subcategory question for *every* intent in parallel — code only reads the answer for the winning intent. This eliminates a round trip without adding cost.
+The key insight: **selection works like wisdom, not knowledge.** A wise person doesn't compute novel answers — they draw from collected perspectives and pick the one that fits. ~100 phrases compose into thousands of unique, natural responses.
 
 ---
 
@@ -89,76 +94,76 @@ Jev (by [TypeSafe](https://typesafe.ai)) is a non-generative AI model. It has th
 | **Score** | Position on an ordered scale + distribution | "How formal?" → `3.2 / 4.0` |
 | **Noul** | Single 0-1 probability | "Needs human?" → `0.12` |
 
-It cannot write a single word. But it can *judge* — and judgment is all you need for selection.
+It cannot write a single word. But it can *judge* — and judgment is all you need for compositional generation.
 
 ---
 
-## Jev vs LLM
+## Jev LLM vs Traditional LLM
 
 | | Jev LLM | Traditional LLM |
 |---|---|---|
-| **Hallucination** | Impossible — every response is human-authored | Inherent risk |
+| **Hallucination** | Impossible — every phrase is human-authored | Inherent risk |
 | **Prompt injection** | No attack surface — no generative layer | Ongoing vulnerability |
 | **Cost per message** | ~$0.0001 | ~$0.01-0.10 |
 | **Latency** | ~800ms (2 API calls) | 1-5s (token streaming) |
-| **Brand safety** | Guaranteed — only pre-approved text | Needs guardrails |
-| **Inspectability** | Full decision chain: intent → subcategory → scores → winner | Black box |
-| **Handles anything** | No — needs candidates for each domain | Yes |
-| **Factual depth** | Limited by response bank | Limited by training data |
-| **Content generation** | Cannot (by design) | Core strength |
+| **Brand safety** | Guaranteed — only pre-approved phrases | Needs guardrails |
+| **Inspectability** | Full decision chain: intents → tools → phrases → assembly | Black box |
+| **Multi-intent** | Handles 3+ intents per message | Usually 1 at a time |
+| **Tools** | Math, knowledge (Wikipedia), time — real answers | Depends on implementation |
 
-**Where Jev LLM wins:** Conversations where trust, consistency, and cost matter more than novelty — customer support, onboarding, game NPCs, FAQ bots, brand-safe assistants.
+---
 
-**Where it can't compete:** Open-ended generation, factual Q&A, writing tasks. (An optional LLM fallback catches these — see below.)
+## Tools
+
+Integrated tools give real answers instead of generic deflections:
+
+| Tool | What it does | Example |
+|------|-------------|---------|
+| **Math** | Evaluates expressions via mathjs | "What's 15% of 200?" → `30` |
+| **Knowledge** | Wikipedia + Wikidata + DDG dictionary | "What is photosynthesis?" → actual definition |
+| **DateTime** | Local time + world time via DDG | "What time is it in Tokyo?" → real answer |
+
+Each tool uses regex extraction to pull parameters from natural language — tested against 110 cases including typos, slang, and long messy sentences (110/110 passing).
 
 ---
 
 ## Worked example
 
-User sends: **"I'm really frustrated, my order has been wrong three times now"**
+User sends: **"Hey! What's 50*12? Also what can you do?"**
 
-**Call 1 — Classify** (one API call, 19 parallel questions):
+**Layer 1 — Classify** (one API call):
 ```
-intent:              complaint        (91% confidence)
-subcategory:         empathetic       (speculative fan-out, read after intent wins)
-formality:           1.2 / 4.0       (casual)
-emotional_intensity: 3.8 / 4.0       (very high)
-needs_human:         0.34            (not yet — try first)
-```
-
-**Fetch candidates** — code pulls 10 responses from `complaint/empathetic`:
-```
-1. "I hear you — that's genuinely frustrating. Let me see what I can do."
-2. "Three times is way too many. I'm sorry about that, let's sort this out."
-3. "That sounds really frustrating. You shouldn't have to deal with that."
-4. "I understand your frustration — repeated issues are unacceptable."
-5. "I'm sorry this keeps happening. That's not the experience you should be having."
-...
+intents:    math_calculation (98%), greeting (94%), capability_query (91%)
+formality:  1.2 / 4.0  (casual)
+emotion:    0.3 / 4.0  (calm)
+complexity: 2.0 / 4.0  (moderate)
 ```
 
-**Call 2 — Score** (one API call, 60 parallel questions):
+**Tool execution** — math detected, regex extracts `50*12`:
+```
+50 * 12 = 600
+```
 
-| | Relevance | Tone | Helpful | Answers | Specificity | Natural | **Weighted** |
-|---|---|---|---|---|---|---|---|
-| #1 | 0.78 | 0.85 | 0.72 | 0.69 | 0.71 | 0.82 | **0.77** |
-| #2 | 0.88 | 0.82 | 0.80 | 0.75 | 0.85 | 0.79 | **0.82** |
-| #3 | 0.72 | 0.90 | 0.55 | 0.52 | 0.60 | 0.88 | **0.70** |
+**Plan response** — planner builds segment structure:
+```
+greeting → acknowledgment → math_result → capability_intro → followup
+```
 
-Because `emotional_intensity` is high, weight profile shifts: **tone gets 30% weight** instead of 20%.
+**Layer 2 — Select phrases** (one API call):
+```
+greeting:        "Hey!"        (matched casual tone)
+acknowledgment:  "Sure!"       (matched energy)
+capability_intro: "I can help with"
+followup:        "Anything else?"
+```
 
-**Winner:** Response #2 — *"Three times is way too many. I'm sorry about that, let's sort this out."*
+**Layer 3 — Assemble** (no API call):
+```
+"Hey! Sure! 50 × 12 = 600. I can help with answering questions,
+having conversations, and helping you think through problems. Anything else?"
+```
 
-Acknowledges the specific issue ("three times"), validates emotion, and offers to help. Jev picked it because it scored highest on specificity *and* tone — exactly what a frustrated user needs.
-
----
-
-## The insight
-
-> Selection works like wisdom, not knowledge.
-> 
-> A wise person doesn't compute novel answers — they draw from collected perspectives and pick the one that fits. Jev does the same thing: 400 human-written responses, contextually selected.
->
-> This is why philosophical questions work *remarkably well* — philosophy has always been about selecting the right framing, not generating new information.
+All three intents addressed. Real math answer. Composed from 5 phrase selections.
 
 ---
 
@@ -179,46 +184,107 @@ Get your API key at [typesafe.ai](https://typesafe.ai).
 
 ```bash
 # Interactive chat
-node index.js
+node gen2-compositional/index.js
 
-# Type "debug" to see scoring breakdown
+# Type "debug" to see full decision breakdown
 # Type "quit" to exit
 
-# Run test suite
-node test.js
-```
+# Run test suite (18 cases + variety test)
+node gen2-compositional/tests/test.js
 
-Optional: add `ANTHROPIC_API_KEY` in `.env` for LLM fallback on low-confidence responses.
+# Tool extraction tests (110 cases)
+node gen2-compositional/tests/test-tools.js
+node gen2-compositional/tests/test-tool-edge.js
+node gen2-compositional/tests/test-tool-human.js
+```
 
 ---
 
 ## Architecture
 
 ```
-generative-jev/
-├── jev-llm.js           ← Engine: classify → shortlist → score → rank
-├── response-bank.js     ← 400 responses across 14 intents, 38 subcategories
-├── templates.js         ← Dynamic slot filling for template responses
-├── llm-fallback.js      ← Optional confidence-gated LLM fallback
-├── index.js             ← Interactive CLI with debug mode
-└── test.js              ← 23 test cases
+gen2-compositional/
+├── index.js                 ← Interactive CLI with debug mode
+├── orchestrator.js          ← Pipeline: classify → tools → select → assemble
+│
+├── classification/
+│   ├── classifier.js        ← Multi-intent classification (14 intent types)
+│   └── planner.js           ← Response structure planning
+│
+├── phrases/
+│   ├── library.js           ← ~100 phrases organized by semantic function
+│   └── selector.js          ← Jev-driven phrase selection per segment
+│
+├── assembler/
+│   ├── grammar-rules.js     ← Composition grammar for multi-intent
+│   ├── composer.js          ← Main assembly logic
+│   └── punctuation.js       ← Smart punctuation engine
+│
+├── tools/
+│   ├── registry.js          ← Tool detection & routing
+│   ├── math.js              ← Math calculations (mathjs)
+│   ├── knowledge.js         ← Wikipedia + Wikidata + DDG dictionary
+│   ├── datetime.js          ← Local + world time (DDG)
+│   └── jev-extract.js       ← Jev-based extraction fallback (unused, tested)
+│
+├── tests/
+│   ├── test.js              ← Pipeline integration tests (18 cases)
+│   ├── test-tools.js        ← Tool unit tests (25 cases)
+│   ├── test-tool-edge.js    ← Edge case extraction tests (32 cases)
+│   └── test-tool-human.js   ← Human-style messy input tests (53 cases)
+│
+└── ARCHITECTURE.md          ← Detailed system design
 ```
 
-**14 intents:** greeting, farewell, gratitude, question, request, complaint, small talk, meta (capabilities/limits), opinion, explanation, followup, humor, confusion, fallback
+---
 
-**3 weight profiles:** default (balanced), complaint/high-emotion (tone-heavy), casual/humor (natural-flow-heavy)
+## Benchmark results
 
-**2-stage selection:** When a subcategory has >10 candidates, a cheap Noul shortlist narrows to 5 before deep scoring.
+Tested head-to-head on 25 cases across greetings, math, knowledge, datetime, multi-intent, emotion, humor, and edge cases:
+
+| Metric | Jev LLM | Selection-based (v1) |
+|--------|---------|---------------------|
+| **Avg latency** | 843ms | 1191ms |
+| **Variety** ("Hey!" x10) | 6/10 unique | 1/10 unique |
+| **Multi-intent** | 6 messages handled | 0 (picks 1 intent) |
+| **Tool answers correct** | 4/4 | 0/4 |
+| **Success rate** | 25/25 | 25/25 |
 
 ---
 
 ## What's next
 
-- [ ] Factual answer templates with data-backed slot filling
-- [ ] Honest limitation routing ("I can't write that, but here's what I can do")
-- [ ] Adaptive fallback threshold tuning
-- [ ] Response bank expansion to 1000+ candidates
-- [ ] Multi-turn conversation state
+- [ ] Multi-turn conversation state and memory
+- [ ] Code execution tool
+- [ ] Response bank expansion (more phrase variety)
+- [ ] Adaptive formality calibration
+
+---
+
+## Previous architecture (v1 — selection-based)
+
+The first version used a different approach: 550 pre-written complete responses selected via multi-dimensional scoring.
+
+```
+gen1-selection-based/
+├── jev-llm.js           ← Engine: classify → shortlist → score → rank
+├── response-bank.js     ← 550 responses across 14 intents, 38 subcategories
+├── templates.js         ← Dynamic slot filling
+├── llm-fallback.js      ← Optional confidence-gated LLM fallback
+├── index.js             ← Interactive CLI
+└── test.js              ← Test suite
+```
+
+**How it worked:** Classify the message (1 API call), fetch 10 candidate responses by intent/subcategory, score each across 6 dimensions (relevance, tone, helpfulness, specificity, answers-question, natural-flow) in 1 API call, pick the highest weighted score.
+
+**Limitations:**
+- **Single intent only** — "Hey! What's 50*12?" would pick either greeting OR math, never both
+- **No tools** — couldn't actually calculate, tell time, or look things up. Math questions got "I'll try" instead of answers
+- **Low variety** — same input always selected the same response from a fixed pool
+- **550 complete responses required** — adding a new capability meant writing 10+ full sentences per subcategory
+- **No composition** — responses were atomic units, couldn't be mixed or combined
+
+The compositional architecture solves all of these by building responses from ~100 reusable phrases instead of selecting from 550 complete ones.
 
 ---
 

@@ -1,5 +1,5 @@
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
-const { respond } = require("./orchestrator");
+require("dotenv").config({ path: require("path").join(__dirname, "..", "..", ".env") });
+const { respond } = require("../orchestrator");
 
 const testCases = [
   // Basic intents
