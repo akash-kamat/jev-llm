@@ -1,8 +1,8 @@
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+require("dotenv").config({ path: require("path").join(__dirname, "..", "..", ".env") });
 
-const mathTool = require("./tools/math");
-const datetimeTool = require("./tools/datetime");
-const knowledgeTool = require("./tools/knowledge");
+const mathTool = require("../tools/math");
+const datetimeTool = require("../tools/datetime");
+const knowledgeTool = require("../tools/knowledge");
 
 let passed = 0;
 let failed = 0;

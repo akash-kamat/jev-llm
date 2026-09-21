@@ -184,18 +184,18 @@ Get your API key at [typesafe.ai](https://typesafe.ai).
 
 ```bash
 # Interactive chat
-node gen2-compositional/index.js
+node index.js
 
 # Type "debug" to see full decision breakdown
 # Type "quit" to exit
 
 # Run test suite (18 cases + variety test)
-node gen2-compositional/tests/test.js
+node src/tests/test.js
 
 # Tool extraction tests (110 cases)
-node gen2-compositional/tests/test-tools.js
-node gen2-compositional/tests/test-tool-edge.js
-node gen2-compositional/tests/test-tool-human.js
+node src/tests/test-tools.js
+node src/tests/test-tool-edge.js
+node src/tests/test-tool-human.js
 ```
 
 ---
@@ -203,7 +203,7 @@ node gen2-compositional/tests/test-tool-human.js
 ## Architecture
 
 ```
-gen2-compositional/
+src/
 ├── index.js                 ← Interactive CLI with debug mode
 ├── orchestrator.js          ← Pipeline: classify → tools → select → assemble
 │

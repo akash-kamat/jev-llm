@@ -1,95 +1,108 @@
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+require("dotenv").config({ path: require("path").join(__dirname, "..", "..", ".env") });
 
 const { TypeSafeClient } = require("@typesafe-ai/sdk");
 const client = new TypeSafeClient({ apiKey: process.env.TYPESAFE_API_KEY });
 
-// Step 1: Generate candidate phrases from the message using simple n-grams
-function generateCandidates(userMessage) {
-  // Clean up
-  let msg = userMessage.toLowerCase().trim();
-  msg = msg.replace(/[?.!,'"]+/g, " ");
-  msg = msg.replace(/\s+/g, " ").trim();
+// === Approach 1: Boundary detection ===
+// Ask Jev: which word starts the topic, which word ends it?
+async function jevBoundaryExtract(userMessage) {
+  const words = userMessage.trim().replace(/[?.!]+$/g, "").split(/\s+/);
+  if (words.length <= 2) return words.join(" ");
 
-  // Remove stop words
-  const stopWords = new Set([
-    "i", "me", "my", "you", "your", "we", "they", "them", "he", "she", "it",
-    "is", "are", "was", "were", "am", "be", "been", "being",
-    "do", "does", "did", "will", "would", "could", "should", "can", "may", "might",
-    "have", "has", "had", "having",
-    "a", "an", "the", "this", "that", "these", "those",
-    "what", "who", "where", "when", "why", "how", "which",
-    "to", "of", "in", "for", "on", "at", "by", "with", "from", "about",
-    "not", "no", "nor", "but", "or", "and", "so", "if", "then",
-    "yo", "hey", "lol", "hmm", "ok", "okay", "well", "like", "just",
-    "pls", "please", "btw", "rn", "tf", "idk", "yk",
-    "tell", "explain", "define", "know", "get", "asked", "hearing",
-    "actually", "exactly", "really", "even", "something", "some",
-    "work", "works", "simple", "terms", "detail",
-    "also", "too", "very", "much", "many", "more",
-    "there", "here", "its", "s", "t", "don", "dont",
-    "keep", "need", "want", "wonder", "wondering",
-    "teacher", "homework", "school", "class",
-  ]);
-
-  const words = msg.split(" ").filter((w) => w.length >= 2 && !stopWords.has(w));
-
-  const candidates = new Set();
-
-  // Single words
-  for (const w of words) candidates.add(w);
-
-  // Bigrams
-  for (let i = 0; i < words.length - 1; i++) {
-    candidates.add(`${words[i]} ${words[i + 1]}`);
-  }
-
-  // Trigrams
-  for (let i = 0; i < words.length - 2; i++) {
-    candidates.add(`${words[i]} ${words[i + 1]} ${words[i + 2]}`);
-  }
-
-  // Cap at 8 to keep Jev choice manageable
-  const arr = [...candidates];
-  if (arr.length > 8) {
-    // Prefer longer phrases
-    arr.sort((a, b) => b.split(" ").length - a.split(" ").length || b.length - a.length);
-    return arr.slice(0, 8);
-  }
-  return arr;
-}
-
-// Step 2: Ask Jev to pick the best search query from candidates
-async function jevChoiceExtract(userMessage) {
-  const candidates = generateCandidates(userMessage);
-
-  if (candidates.length === 0) return { query: userMessage.trim(), candidates: [] };
-  if (candidates.length === 1) return { query: candidates[0], candidates };
-
-  const criteria = {};
-  for (const c of candidates) {
-    criteria[c] = `Search Wikipedia for "${c}"`;
+  const startCriteria = {};
+  const endCriteria = {};
+  for (let i = 0; i < words.length; i++) {
+    const label = `${i}:${words[i]}`;
+    startCriteria[label] = `Topic starts at word "${words[i]}" (position ${i})`;
+    endCriteria[label] = `Topic ends at word "${words[i]}" (position ${i})`;
   }
 
   const response = await client.systemOne({
     state: { user_message: userMessage },
     questions: {
-      best_query: {
+      topic_start: {
         type: "choice",
         instructions:
-          "The user is asking a knowledge question. Which of these phrases is the BEST Wikipedia search query to answer their question? Pick the most specific and complete topic name.",
-        criteria,
+          "The user is asking a knowledge question. Which word is the FIRST word of the main topic/subject they're asking about? Pick the word where the topic name begins.",
+        criteria: startCriteria,
+      },
+      topic_end: {
+        type: "choice",
+        instructions:
+          "The user is asking a knowledge question. Which word is the LAST word of the main topic/subject they're asking about? Pick the word where the topic name ends.",
+        criteria: endCriteria,
       },
     },
   });
 
-  return {
-    query: response.answers.best_query.choice,
-    confidence: response.answers.best_query.confidence,
-    candidates,
-  };
+  const startChoice = response.answers.topic_start.choice;
+  const endChoice = response.answers.topic_end.choice;
+  const startIdx = parseInt(startChoice.split(":")[0]);
+  const endIdx = parseInt(endChoice.split(":")[0]);
+
+  const from = Math.min(startIdx, endIdx);
+  const to = Math.max(startIdx, endIdx);
+  return words.slice(from, to + 1).join(" ");
 }
 
-// === Regex extraction (current) ===
+// === Approach 2: Word tagging with nouls ===
+// Ask noul per word: "is this part of the topic?"
+async function jevTagExtract(userMessage) {
+  const words = userMessage.trim().replace(/[?.!]+$/g, "").split(/\s+/);
+  if (words.length <= 2) return words.join(" ");
+
+  const questions = {};
+  for (let i = 0; i < words.length; i++) {
+    questions[`w${i}`] = {
+      type: "noul",
+      instructions: `Is the word "${words[i]}" (position ${i}) part of the CORE TOPIC or SUBJECT the user is asking about? Only mark true for words that form the topic name itself, not question framing or filler.`,
+      criteria: {
+        true: `"${words[i]}" is part of the topic name`,
+        false: `"${words[i]}" is not part of the topic`,
+      },
+    };
+  }
+
+  const response = await client.systemOne({
+    state: { user_message: userMessage },
+    questions,
+  });
+
+  // Collect words above threshold and find longest consecutive run
+  const threshold = 0.5;
+  const tagged = words.map((w, i) => ({
+    word: w,
+    score: response.answers[`w${i}`]?.noul ?? 0,
+    isTag: (response.answers[`w${i}`]?.noul ?? 0) > threshold,
+  }));
+
+  // Find longest consecutive tagged run
+  let bestStart = -1, bestLen = 0;
+  let curStart = -1, curLen = 0;
+  for (let i = 0; i < tagged.length; i++) {
+    if (tagged[i].isTag) {
+      if (curStart === -1) curStart = i;
+      curLen++;
+      if (curLen > bestLen) {
+        bestStart = curStart;
+        bestLen = curLen;
+      }
+    } else {
+      curStart = -1;
+      curLen = 0;
+    }
+  }
+
+  if (bestStart === -1) {
+    // Fallback: pick the highest scoring word
+    const best = tagged.reduce((a, b) => (b.score > a.score ? b : a));
+    return best.word;
+  }
+
+  return words.slice(bestStart, bestStart + bestLen).join(" ");
+}
+
+// === Regex (current) ===
 function regexExtract(userMessage) {
   let q = userMessage.trim();
   q = q.replace(/^(yo|hey|lol|hmm+|ok|okay|so|well|um+|uh+|like|pls|please|btw)\b[,.]?\s*/gi, "");
@@ -127,7 +140,6 @@ function regexExtract(userMessage) {
   return q;
 }
 
-// === Test cases ===
 const testCases = [
   { input: "What is photosynthesis?", expected: "photosynthesis" },
   { input: "Who is Albert Einstein?", expected: "Albert Einstein" },
@@ -166,95 +178,57 @@ const testCases = [
   { input: "What is DNA and how does it work?", expected: "DNA" },
 ];
 
-async function main() {
-  console.log("=".repeat(70));
-  console.log("  Jev Choice Extraction vs Regex (35 test cases)");
-  console.log("=".repeat(70));
+async function runMethod(name, extractFn) {
+  let pass = 0;
+  const results = [];
+  const start = Date.now();
 
-  // Show candidate generation for a few examples first
-  console.log("\n=== CANDIDATE GENERATION SAMPLES ===\n");
-  const samples = [
-    "so i keep hearing about climate change can you explain what it actually is",
-    "who tf is elon musk",
-    "What is quantum computing?",
-    "hey i was wondering what exactly is a black hole and how big are they",
-    "what language do they speak in brazil",
-  ];
-  for (const s of samples) {
-    console.log(`"${s}"`);
-    console.log(`  candidates: ${JSON.stringify(generateCandidates(s))}\n`);
-  }
-
-  let regexPass = 0;
-  let jevPass = 0;
-
-  const regexStart = Date.now();
-  const regexResults = testCases.map((tc) => {
-    const got = regexExtract(tc.input);
-    const pass = got.toLowerCase().includes(tc.expected.toLowerCase());
-    if (pass) regexPass++;
-    return { ...tc, got, pass };
-  });
-  const regexTime = Date.now() - regexStart;
-
-  console.log(`\nRunning ${testCases.length} Jev choice calls...\n`);
-  const jevStart = Date.now();
-  const jevResults = [];
   for (let i = 0; i < testCases.length; i++) {
     const tc = testCases[i];
     try {
-      const { query, confidence, candidates } = await jevChoiceExtract(tc.input);
-      const pass = query.toLowerCase().includes(tc.expected.toLowerCase());
-      if (pass) jevPass++;
-      jevResults.push({ ...tc, got: query, confidence, candidates, pass });
+      const got = await extractFn(tc.input);
+      const ok = got.toLowerCase().includes(tc.expected.toLowerCase());
+      if (ok) pass++;
+      results.push({ ...tc, got, pass: ok });
     } catch (err) {
-      jevResults.push({ ...tc, got: `ERR: ${err.message.substring(0, 30)}`, pass: false });
+      results.push({ ...tc, got: `ERR: ${err.message.substring(0, 40)}`, pass: false });
     }
-    process.stdout.write(`  ${i + 1}/${testCases.length}\r`);
+    process.stdout.write(`  ${name}: ${i + 1}/${testCases.length}\r`);
   }
-  const jevTime = Date.now() - jevStart;
+
+  const time = Date.now() - start;
+  console.log(`  ${name}: ${pass}/${testCases.length} (${Math.round((pass / testCases.length) * 100)}%) in ${time}ms (${Math.round(time / testCases.length)}ms/call)     `);
+  return { name, pass, results, time };
+}
+
+async function main() {
+  console.log("=".repeat(70));
+  console.log("  Smart Jev Extraction: Boundary vs Tags vs Regex");
+  console.log("=".repeat(70));
+
+  const regex = await runMethod("Regex     ", regexExtract);
+  const boundary = await runMethod("Boundary  ", jevBoundaryExtract);
+  const tag = await runMethod("Word Tags ", jevTagExtract);
 
   // Side by side
-  console.log(`\n=== SIDE-BY-SIDE ===\n`);
-  console.log(
-    "Input".padEnd(50) +
-    "Expected".padEnd(25) +
-    "Regex".padEnd(28) +
-    "Jev Choice"
-  );
+  console.log(`\n${"Input".padEnd(48)}${"Expected".padEnd(20)}${"Regex".padEnd(24)}${"Boundary".padEnd(24)}${"Tags"}`);
   console.log("-".repeat(140));
 
   for (let i = 0; i < testCases.length; i++) {
-    const r = regexResults[i];
-    const j = jevResults[i];
+    const r = regex.results[i];
+    const b = boundary.results[i];
+    const t = tag.results[i];
     console.log(
-      `${r.input.substring(0, 48).padEnd(50)}${r.expected.padEnd(25)}${(r.pass ? "✓" : "✗") + " " + r.got.substring(0, 25).padEnd(27)}${(j.pass ? "✓" : "✗") + " " + j.got.substring(0, 25)}`
+      `${r.input.substring(0, 46).padEnd(48)}${r.expected.substring(0, 18).padEnd(20)}${(r.pass ? "✓" : "✗") + " " + r.got.substring(0, 21).padEnd(23)}${(b.pass ? "✓" : "✗") + " " + b.got.substring(0, 21).padEnd(23)}${(t.pass ? "✓" : "✗") + " " + t.got.substring(0, 21)}`
     );
   }
 
-  // Failures
-  const jevFails = jevResults.filter((r) => !r.pass);
-  if (jevFails.length > 0) {
-    console.log(`\n=== JEV CHOICE FAILURES (${jevFails.length}) ===`);
-    for (const f of jevFails) {
-      console.log(`  "${f.input}"`);
-      console.log(`    expected: "${f.expected}" | got: "${f.got}"`);
-      console.log(`    candidates were: ${JSON.stringify(f.candidates || [])}`);
-    }
-  }
-
-  const regexFails = regexResults.filter((r) => !r.pass);
-  if (regexFails.length > 0) {
-    console.log(`\n=== REGEX FAILURES (${regexFails.length}) ===`);
-    for (const f of regexFails) console.log(`  "${f.input}" → "${f.got}" (expected "${f.expected}")`);
-  }
-
+  // Summary
   console.log("\n" + "=".repeat(70));
-  console.log("  SUMMARY");
+  console.log(`  Regex:      ${regex.pass}/${testCases.length} | ${regex.time}ms`);
+  console.log(`  Boundary:   ${boundary.pass}/${testCases.length} | ${boundary.time}ms (${Math.round(boundary.time / testCases.length)}ms/call)`);
+  console.log(`  Word Tags:  ${tag.pass}/${testCases.length} | ${tag.time}ms (${Math.round(tag.time / testCases.length)}ms/call)`);
   console.log("=".repeat(70));
-  console.log(`  Regex:      ${regexPass}/${testCases.length} correct | ${regexTime}ms total | ~${(regexTime / testCases.length).toFixed(2)}ms/call`);
-  console.log(`  Jev Choice: ${jevPass}/${testCases.length} correct | ${jevTime}ms total | ~${Math.round(jevTime / testCases.length)}ms/call`);
-  console.log(`  Speed diff: Regex is ${Math.round(jevTime / Math.max(regexTime, 1))}x faster`);
 }
 
 main().catch((err) => {

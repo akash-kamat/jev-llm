@@ -2,7 +2,8 @@ node_modules/
 .env
 .claude/
 .agents/
+.wrangler/
 skills-lock.json
-./AGENTS.md
-./PROJECT.md
-./generative_jev_ideas.md
+AGENTS.md
+PROJECT.md
+generative-jev-ideas.md

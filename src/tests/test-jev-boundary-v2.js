@@ -1,4 +1,4 @@
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+require("dotenv").config({ path: require("path").join(__dirname, "..", "..", ".env") });
 
 const { TypeSafeClient } = require("@typesafe-ai/sdk");
 const client = new TypeSafeClient({ apiKey: process.env.TYPESAFE_API_KEY });

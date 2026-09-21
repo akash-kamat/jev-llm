@@ -1,4 +1,6 @@
-require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+if (!process.env.TYPESAFE_API_KEY) {
+  require("dotenv").config({ path: require("path").join(__dirname, "..", ".env") });
+}
 const readline = require("readline");
 const { respond } = require("./orchestrator");
 
@@ -8,7 +10,7 @@ const rl = readline.createInterface({
 });
 
 console.log("=".repeat(60));
-console.log("  Gen2 — Compositional Text Generation");
+console.log("  Jev LLM — Compositional Text Generation");
 console.log("  Phrase-level assembly with multi-intent support");
 console.log("  2 Jev API calls per message (classify + select)");
 console.log("=".repeat(60));
@@ -34,7 +36,7 @@ function prompt() {
     try {
       const result = await respond(trimmed);
 
-      console.log(`\nGen2: ${result.response}\n`);
+      console.log(`\nJev: ${result.response}\n`);
 
       if (debugMode) {
         console.log("--- Debug Info ---");
